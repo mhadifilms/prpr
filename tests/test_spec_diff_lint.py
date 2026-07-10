@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from pmr import errors, schema
-from pmr.diff import compare
-from pmr.spec import Spec, load_spec
+from prpr import errors, schema
+from prpr.diff import compare
+from prpr.spec import Spec, load_spec
 
 
 class TestSpecParsing:
@@ -76,18 +76,18 @@ class TestSchema:
         parity = schema.get_topic("parity")["operations"]
         assert parity["timeline.inspect"]["status"] == "both"
         assert parity["render.queue"]["status"] == "dvr-only"
-        assert parity["effects.apply"]["status"] == "pmr-only"
+        assert parity["effects.apply"]["status"] == "prpr-only"
 
     def test_all_static_topics_resolve(self) -> None:
         for topic in schema.STATIC_TOPICS:
             assert schema.get_topic(topic) is not None
 
     def test_live_topic_without_premiere_raises(self) -> None:
-        with pytest.raises(errors.PmrError):
+        with pytest.raises(errors.PrprError):
             schema.get_topic("effects")
 
     def test_unknown_topic(self) -> None:
-        with pytest.raises(errors.PmrError):
+        with pytest.raises(errors.PrprError):
             schema.get_topic("nope")
 
     def test_parity_status_lookup(self) -> None:

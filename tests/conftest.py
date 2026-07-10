@@ -13,12 +13,12 @@ from typing import Any
 
 import pytest
 
-from pmr import errors
-from pmr.bridge import RemoteRef
+from prpr import errors
+from prpr.bridge import RemoteRef
 
 
 class MockBridge:
-    """Test double for pmr.bridge.Bridge."""
+    """Test double for prpr.bridge.Bridge."""
 
     def __init__(self, responses: dict[str, Any] | None = None) -> None:
         # responses: snippet-name -> value | callable(args) -> value | Exception
@@ -85,7 +85,7 @@ class MockBridge:
 
     @staticmethod
     def _snippet_name(code: str) -> str:
-        from pmr import _js
+        from prpr import _js
 
         for name, source in _js.SNIPPETS.items():
             if source == code:
@@ -103,7 +103,7 @@ def mock_bridge() -> MockBridge:
 
 @pytest.fixture
 def premiere(mock_bridge: MockBridge):
-    from pmr.premiere import Premiere
+    from prpr.premiere import Premiere
 
     return Premiere(bridge=mock_bridge)  # type: ignore[arg-type]
 

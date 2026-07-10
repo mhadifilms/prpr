@@ -1,0 +1,289 @@
+"""Discoverable catalogs — `prpr schema`.
+
+Static topics work without a running Premiere; live topics query the
+bridge. The ``parity`` topic is the machine-readable dvr↔prpr support
+matrix: agents adding features to either repo consult it to know what
+must be mirrored and what fails with ``NotSupportedError`` where.
+"""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+from . import errors
+
+if TYPE_CHECKING:
+    from .premiere import Premiere
+
+STATIC_TOPICS = (
+    "parity",
+    "marker-types",
+    "marker-colors",
+    "export-types",
+    "interchange-formats",
+    "media-kinds",
+    "settings",
+)
+LIVE_TOPICS = (
+    "effects",
+    "audio-effects",
+    "transitions",
+    "render-presets",
+)
+TOPICS = STATIC_TOPICS + LIVE_TOPICS
+
+
+# ---------------------------------------------------------------------------
+# Parity matrix (the dvr ↔ prpr contract)
+# ---------------------------------------------------------------------------
+# status values:
+#   both       — implemented in dvr and prpr with the same routing
+#   dvr-only   — Resolve API supports it; prpr raises NotSupportedError
+#   prpr-only   — Premiere API supports it; dvr raises NotSupportedError
+# Keep in sync with the sibling repo's schema.py. CI checks this table
+# against the registered CLI commands and MCP tools.
+
+PARITY: dict[str, dict[str, Any]] = {
+    "ping": {"status": "both"},
+    "inspect": {"status": "both"},
+    "version": {"status": "both"},
+    "doctor": {"status": "both"},
+    "reconnect": {"status": "both"},
+    "page.get": {"status": "dvr-only", "reason": "Premiere has no scriptable workspaces"},
+    "page.set": {"status": "dvr-only", "reason": "Premiere has no scriptable workspaces"},
+    "project.list": {
+        "status": "both",
+        "note": "prpr lists open projects (file-based, no PM database)",
+    },
+    "project.current": {"status": "both"},
+    "project.ensure": {"status": "both"},
+    "project.create": {"status": "both"},
+    "project.load": {"status": "both"},
+    "project.save": {"status": "both"},
+    "project.delete": {"status": "both", "note": "prpr deletes the .prproj file when closed"},
+    "project.export": {
+        "status": "dvr-only",
+        "reason": "no .drp equivalent; Premiere projects are already files",
+    },
+    "project.import": {"status": "dvr-only", "reason": "no .drp equivalent; use project.load"},
+    "project.color_groups": {"status": "dvr-only", "reason": "no color-group API in UXP"},
+    "timeline.list": {"status": "both"},
+    "timeline.current": {"status": "both"},
+    "timeline.inspect": {"status": "both"},
+    "timeline.ensure": {"status": "both"},
+    "timeline.create": {"status": "both"},
+    "timeline.switch": {"status": "both"},
+    "timeline.delete": {"status": "both"},
+    "timeline.rename": {"status": "both"},
+    "timeline.append": {"status": "both"},
+    "timeline.insert": {"status": "both"},
+    "timeline.clear": {"status": "both"},
+    "timeline.add_title": {
+        "status": "dvr-only",
+        "reason": "no title/text-clip creation in UXP (use MOGRTs)",
+    },
+    "timeline.insert_mogrt": {
+        "status": "prpr-only",
+        "reason": "MOGRT insertion is a Premiere feature",
+    },
+    "timeline.subtitles": {"status": "dvr-only", "reason": "no caption-generation API in UXP"},
+    "timeline.scene_cut_detection": {
+        "status": "prpr-only",
+        "reason": "SequenceUtils scene edit detection",
+    },
+    "marker.add": {"status": "both"},
+    "marker.list": {"status": "both"},
+    "marker.remove": {"status": "both"},
+    "marker.move": {"status": "both", "note": "prpr: createMoveMarkerAction"},
+    "timeline.work_area": {
+        "status": "prpr-only",
+        "reason": "WorkAreaUtils; feature-detected (absent on some 26.5 builds, fails with a clear version error)",
+    },
+    "timeline.keyframes": {"status": "prpr-only", "reason": "ComponentParam keyframe list"},
+    "media.color_label": {"status": "both", "note": "prpr: ProjectItem color label (0-14)"},
+    "media.bin_rename": {"status": "both", "note": "prpr: createRenameBinAction"},
+    "media.smart_bin": {"status": "prpr-only", "reason": "createSmartBinAction"},
+    "clip.where": {"status": "both"},
+    "clip.rename": {"status": "both"},
+    "clip.enable": {"status": "both"},
+    "clip.move": {"status": "both"},
+    "clip.set_properties": {
+        "status": "dvr-only",
+        "reason": "no generic clip-property dict; use effects.set_param",
+    },
+    "clip.transform": {
+        "status": "both",
+        "note": "prpr: effects.set_param on the Motion/Opacity components",
+    },
+    "effects.set_param": {"status": "prpr-only", "reason": "component params incl. keyframes"},
+    "effects.list": {"status": "prpr-only", "reason": "effect factories are a Premiere UXP feature"},
+    "effects.apply": {"status": "prpr-only"},
+    "effects.components": {"status": "prpr-only"},
+    "transition.add": {"status": "prpr-only", "reason": "dvr has no transition API"},
+    "media.inspect": {"status": "both"},
+    "media.bins": {"status": "both"},
+    "media.ls": {"status": "both"},
+    "media.import": {"status": "both"},
+    "media.scan": {"status": "both"},
+    "media.bin_ensure": {"status": "both"},
+    "media.bin_delete": {"status": "both"},
+    "media.move": {"status": "both"},
+    "media.relink": {
+        "status": "dvr-only",
+        "reason": "per-clip changeMediaFilePath only; no batch relink",
+    },
+    "media.proxy": {"status": "both", "note": "prpr: attachProxy per clip"},
+    "media.transcribe": {"status": "both", "note": "prpr: Transcript API (26.3+)"},
+    "media.subclip": {
+        "status": "prpr-only",
+        "reason": "ClipProjectItem.createSubClipAction (26.3+)",
+    },
+    "timeline.set_in_out": {"status": "both", "note": "prpr: sequence in/out actions"},
+    "app.preference": {"status": "prpr-only", "reason": "AppPreference key-value store"},
+    "project.scratch_disks": {"status": "prpr-only", "reason": "ScratchDiskSettings API"},
+    "project.ingest": {"status": "prpr-only", "reason": "IngestSettings API"},
+    "project.color_settings": {"status": "both", "note": "prpr: graphics white luminance only"},
+    "project.import_sequences": {"status": "prpr-only", "reason": "cross-project sequence import"},
+    "project.import_ae_comps": {"status": "prpr-only", "reason": "After Effects comp import"},
+    "media.footage_interpretation": {"status": "prpr-only", "reason": "FootageInterpretation API"},
+    "media.purge_cache": {"status": "prpr-only", "reason": "MediaManager.purgeMediaCache (26.5+)"},
+    "timeline.track_update": {
+        "status": "both",
+        "note": "prpr: mute + rename (26.3+); no lock/add/remove",
+    },
+    "timeline.subsequence": {"status": "prpr-only", "reason": "Sequence.createSubsequence"},
+    "timeline.clone": {"status": "both", "note": "prpr: createCloneAction"},
+    "timeline.set_settings": {"status": "both", "note": "prpr: SequenceSettings write subset"},
+    "timeline.insert_mogrt_from_library": {
+        "status": "prpr-only",
+        "reason": "insertMogrtFromLibrary",
+    },
+    "timeline.create_from_media": {
+        "status": "prpr-only",
+        "reason": "Project.createSequenceFromMedia",
+    },
+    "timeline.selection": {
+        "status": "prpr-only",
+        "reason": "read + clear only; setSelection crashes 26.5 beta and is refused",
+    },
+    "render.submit": {"status": "both", "note": "prpr: .epr presets via EncoderManager"},
+    "render.presets": {"status": "both", "note": "prpr discovers .epr files on disk"},
+    "render.status": {"status": "both", "note": "prpr: event-driven, no job ids"},
+    "render.watch": {"status": "both"},
+    "render.queue": {"status": "dvr-only", "reason": "no enumerable render queue in UXP"},
+    "render.formats": {"status": "dvr-only", "reason": "presets replace format/codec enums"},
+    "render.codecs": {"status": "dvr-only", "reason": "presets replace format/codec enums"},
+    "render.stop": {"status": "dvr-only", "reason": "no cancel API in UXP"},
+    "render.clear": {"status": "dvr-only", "reason": "no queue to clear"},
+    "render.export_frame": {"status": "both", "note": "prpr: Exporter.exportSequenceFrame"},
+    "interchange.export": {"status": "both", "note": "prpr: fcpxml/otio/aaf (26.3+)"},
+    "interchange.import": {"status": "dvr-only", "reason": "removed from UXP in 26.3"},
+    "metadata.get": {"status": "prpr-only", "reason": "XMP metadata API"},
+    "metadata.set": {"status": "prpr-only"},
+    "source_monitor": {
+        "status": "prpr-only",
+        "reason": "source monitor control is Premiere-specific",
+    },
+    "properties.get": {"status": "prpr-only", "reason": "per-project key-value store"},
+    "properties.set": {"status": "prpr-only"},
+    "color.grade": {"status": "dvr-only", "reason": "no color-page equivalent in UXP"},
+    "fusion": {"status": "dvr-only", "reason": "no Fusion equivalent in Premiere"},
+    "gallery.stills": {"status": "dvr-only", "reason": "no gallery in Premiere"},
+    "spec.apply": {"status": "both"},
+    "spec.export": {"status": "both"},
+    "diff.timelines": {"status": "both"},
+    "diff.spec": {"status": "both"},
+    "snapshot.save": {"status": "both"},
+    "snapshot.restore": {"status": "both"},
+    "lint": {"status": "both"},
+    "eval": {"status": "both", "note": "dvr: Python; prpr: JavaScript inside Premiere"},
+    "events.subscribe": {"status": "prpr-only", "reason": "EventManager host-event push"},
+}
+
+MARKER_TYPES = ["Comment", "Chapter", "Segmentation", "WebLink"]
+
+MARKER_COLORS = [
+    {"index": 0, "name": "Green"},
+    {"index": 1, "name": "Red"},
+    {"index": 2, "name": "Magenta"},
+    {"index": 3, "name": "Orange"},
+    {"index": 4, "name": "Yellow"},
+    {"index": 5, "name": "Blue"},
+    {"index": 6, "name": "Cyan"},
+]
+
+EXPORT_TYPES = [
+    {"name": "immediately", "description": "Export now inside Premiere"},
+    {"name": "queue_to_app", "description": "Queue in Premiere's export queue"},
+    {"name": "queue_to_ame", "description": "Queue in Adobe Media Encoder"},
+]
+
+INTERCHANGE_FORMATS = [
+    {"name": "fcpxml", "extension": ".xml", "direction": "export"},
+    {"name": "otio", "extension": ".otio", "direction": "export"},
+    {"name": "aaf", "extension": ".aaf", "direction": "export"},
+]
+
+SETTINGS_TOPIC = {
+    "sequence": {
+        "audio_channel_count": {"type": "int", "readonly": True},
+        "audio_channel_type": {"type": "enum", "values": ["mono", "stereo", "5.1", "multi"]},
+        "editing_mode": {"type": "str"},
+        "video_pixel_aspect_ratio": {"type": "str"},
+        "max_bit_depth": {"type": "bool"},
+        "max_render_quality": {"type": "bool"},
+    },
+    "notes": "Premiere sequence settings are read via getSettings(); most video "
+    "geometry is fixed by the sequence preset at creation time.",
+}
+
+
+def get_topic(topic: str, premiere: Premiere | None = None) -> Any:
+    """Return the catalog for a topic. Live topics need a Premiere handle."""
+    if topic == "parity":
+        return {"operations": PARITY, "statuses": ["both", "dvr-only", "prpr-only"]}
+    if topic == "marker-types":
+        return MARKER_TYPES
+    if topic == "marker-colors":
+        return MARKER_COLORS
+    if topic == "export-types":
+        return EXPORT_TYPES
+    if topic == "interchange-formats":
+        return INTERCHANGE_FORMATS
+    if topic == "media-kinds":
+        from . import media
+
+        return {
+            "video": sorted(media.VIDEO_EXTENSIONS),
+            "audio": sorted(media.AUDIO_EXTENSIONS),
+            "image": sorted(media.IMAGE_EXTENSIONS),
+        }
+    if topic == "settings":
+        return SETTINGS_TOPIC
+    if topic == "render-presets":
+        from .render import find_presets
+
+        return find_presets()
+    if topic in ("effects", "audio-effects", "transitions"):
+        if premiere is None:
+            raise errors.PrprError(
+                f"Topic {topic!r} requires a running Premiere.",
+                fix="Start Premiere with the prpr bridge panel open and retry.",
+            )
+        kind = {"effects": "video", "audio-effects": "audio", "transitions": "transition"}[topic]
+        return premiere.effects.list(kind)
+    raise errors.PrprError(
+        f"Unknown schema topic: {topic!r}",
+        fix=f"Valid topics: {', '.join(TOPICS)}",
+    )
+
+
+def parity_status(operation: str) -> dict[str, Any]:
+    """Look up one operation in the parity matrix."""
+    entry = PARITY.get(operation)
+    if entry is None:
+        return {"operation": operation, "status": "unknown"}
+    return {"operation": operation, **entry}
+
+
+__all__ = ["LIVE_TOPICS", "PARITY", "STATIC_TOPICS", "TOPICS", "get_topic", "parity_status"]

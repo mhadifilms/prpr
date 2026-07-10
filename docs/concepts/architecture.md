@@ -1,6 +1,6 @@
 # Architecture
 
-`pmr` looks like a normal Python library, but under the hood it drives
+`prpr` looks like a normal Python library, but under the hood it drives
 JavaScript running inside Premiere Pro. Three ideas make that feel
 seamless.
 
@@ -11,14 +11,14 @@ directly. Premiere does not: its UXP API is JavaScript that runs inside a
 plugin panel, and UXP plugins can only open **outgoing** network
 connections. There is no socket to dial into.
 
-So `pmr` turns the relationship around. The Python side (CLI, library, or
+So `prpr` turns the relationship around. The Python side (CLI, library, or
 MCP server) **hosts** a WebSocket server on `127.0.0.1:8855`. The bundled
-`pmr bridge` panel, running inside Premiere, **dials out** to it and waits
+`prpr bridge` panel, running inside Premiere, **dials out** to it and waits
 for work.
 
 ```
 ┌─────────────────────────┐         ws://127.0.0.1:8855         ┌────────────────────────┐
-│ pmr (Python)            │ ◀───────── dials in ──────────────  │ pmr bridge panel (UXP) │
+│ prpr (Python)            │ ◀───────── dials in ──────────────  │ prpr bridge panel (UXP) │
 │  hosts the WS server    │ ───────── RPC requests ──────────▶  │  runs premierepro JS   │
 └─────────────────────────┘                                     └────────────────────────┘
 ```
@@ -41,7 +41,7 @@ handle registry and referenced across the wire as `{"$h": id}`.
 
 That means **adding a Premiere capability almost never requires touching
 or reinstalling the plugin.** New behavior is a JavaScript snippet in
-`pmr/_js.py` plus a typed Python wrapper. The snippet is the body of an
+`prpr/_js.py` plus a typed Python wrapper. The snippet is the body of an
 `async (ppro, uxp, H, args) => {...}` function; it runs against the real
 `premierepro` module and returns JSON-able data.
 
@@ -55,7 +55,7 @@ undoable step. Some synchronous DOM reads (`getTrackItems`,
 `project.lockedAccess(...)` to see a consistent state.
 
 Every snippet uses a shared `runTransaction(project, label, build)` helper
-that wraps both concerns. This is why a `pmr` mutation shows up as one
+that wraps both concerns. This is why a `prpr` mutation shows up as one
 tidy entry in Premiere's Edit → Undo menu.
 
 ## Time
@@ -69,7 +69,7 @@ never deal with ticks in Python.
 
 The raw API fails quietly: promises reject with one-line messages,
 `importFiles()` returns a bare `false`, actions silently no-op. Each
-wrapper decodes those into a `PmrError` subclass carrying a `cause`, a
+wrapper decodes those into a `PrprError` subclass carrying a `cause`, a
 `fix`, and a `state` snapshot — the same structured shape `dvr` uses, so
 agents can branch on error type and humans can read the fix.
 
@@ -91,7 +91,7 @@ AppleScript `DoScript` (macOS) / BridgeTalk — **has been removed in
 Premiere Pro 26**. Its AppleScript dictionary now exposes only `capture`
 and `editoriginal`; `DoScript` is gone (verified on 26.5 beta and 2026
 release). ExtendScript itself is deprecated and being sunset. So on
-Premiere 26 there is *no* supported no-plugin path, and pmr's bridge is
+Premiere 26 there is *no* supported no-plugin path, and prpr's bridge is
 not merely the best option — it's the only one.
 
 ### Headless — no panel to open
@@ -103,11 +103,11 @@ automatically at Premiere startup (verified on 26.5: it connects with no
 panel, no menu, no developer tools). So setup is just:
 
 ```
-pmr plugin install     # UPIA installs the .ccx
+prpr plugin install     # UPIA installs the .ccx
 # restart Premiere once so it registers the plugin
 ```
 
 After that the bridge starts with Premiere every launch and reconnects to
-the daemon on its own — there is nothing to open or keep open. `pmr plugin
+the daemon on its own — there is nothing to open or keep open. `prpr plugin
 check` confirms it's connected. (A status-panel variant lives in
 `plugin-panel/` for anyone who wants a visible readout.)

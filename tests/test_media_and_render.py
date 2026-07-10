@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from pmr import errors
-from pmr.media import media_kind_for_path, scan_media_files
+from prpr import errors
+from prpr.media import media_kind_for_path, scan_media_files
 from tests.conftest import MockBridge
 
 
@@ -82,20 +82,20 @@ class TestBins:
 
 class TestRenderPresets:
     def test_resolve_preset_by_path(self, tmp_path: Path) -> None:
-        from pmr.render import resolve_preset
+        from prpr.render import resolve_preset
 
         preset = tmp_path / "custom.epr"
         preset.write_bytes(b"<xml/>")
         assert resolve_preset(str(preset)) == str(preset)
 
     def test_resolve_preset_missing_raises(self) -> None:
-        from pmr.render import resolve_preset
+        from prpr.render import resolve_preset
 
         with pytest.raises(errors.RenderError):
             resolve_preset("no-such-preset-xyz")
 
     def test_resolve_none_passthrough(self) -> None:
-        from pmr.render import resolve_preset
+        from prpr.render import resolve_preset
 
         assert resolve_preset(None) is None
 

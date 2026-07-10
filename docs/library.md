@@ -1,7 +1,7 @@
 # Python library
 
 ```python
-from pmr import Premiere
+from prpr import Premiere
 
 p = Premiere()          # hosts the bridge; launches Premiere if needed
 ```
@@ -49,7 +49,7 @@ p.media.move("Selects", source_bin="Footage", name_contains="_ok")
 p.media.attach_proxy("/proxies/a_proxy.mov", name="a.mp4")
 p.media.create_subclip("a_sub", 1.0, 4.0, name="a.mp4")    # 26.3+
 p.media.transcript_export(name="interview.mp4")            # 26.3+
-pmr.scan_media_files("/footage")                           # no Premiere needed
+prpr.scan_media_files("/footage")                           # no Premiere needed
 ```
 
 ## Effects, transitions, transforms
@@ -82,7 +82,7 @@ job.output_path
 
 p.render.export_frame(2.0, "/stills/f.png", width=1920, height=1080)
 
-from pmr import interchange
+from prpr import interchange
 interchange.export_timeline(p, "/out/edit.xml")     # fcpxml by extension
 interchange.export_timeline(p, "/out/edit.otio")
 interchange.export_timeline(p, "/out/edit.aaf")
@@ -91,7 +91,7 @@ interchange.export_timeline(p, "/out/edit.aaf")
 ## Declarative workflows
 
 ```python
-from pmr import spec, diff, snapshot, lint
+from prpr import spec, diff, snapshot, lint
 
 s = spec.load_spec("show.yaml")
 spec.plan(s, p)                    # what would change
@@ -116,6 +116,6 @@ p.eval_js("""
 
 ## Errors
 
-Everything raises a `pmr.errors.PmrError` subclass with `message`,
+Everything raises a `prpr.errors.PrprError` subclass with `message`,
 `cause`, `fix`, and a `state` snapshot. Operations Premiere's API can't
 perform raise `NotSupportedError` — see [parity](parity.md).

@@ -1,6 +1,6 @@
 {
-  "id": "pmr.bridge",
-  "name": "pmr bridge",
+  "id": "prpr.bridge",
+  "name": "prpr bridge",
   "version": "0.3.0",
   "main": "index.html",
   "manifestVersion": 5,
@@ -11,9 +11,9 @@
   "entrypoints": [
     {
       "type": "panel",
-      "id": "pmr.bridge.panel",
+      "id": "prpr.bridge.panel",
       "label": {
-        "default": "pmr bridge"
+        "default": "prpr bridge"
       },
       "minimumSize": { "width": 230, "height": 120 },
       "maximumSize": { "width": 800, "height": 1200 },

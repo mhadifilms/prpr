@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from pmr import errors
+from prpr import errors
 from tests.conftest import SEQUENCE_INSPECT, MockBridge
 
 
 @pytest.fixture
 def premiere_with_sequence(mock_bridge: MockBridge):
-    from pmr.premiere import Premiere
+    from prpr.premiere import Premiere
 
     mock_bridge.responses.update(
         {
@@ -94,7 +94,7 @@ def test_append_routes_to_insert(premiere_with_sequence, mock_bridge: MockBridge
 
 
 def test_current_none_when_no_project(mock_bridge: MockBridge) -> None:
-    from pmr.premiere import Premiere
+    from prpr.premiere import Premiere
 
     mock_bridge.responses["sequence_inspect"] = errors.HostJSError("No active sequence")
     premiere = Premiere(bridge=mock_bridge)  # type: ignore[arg-type]

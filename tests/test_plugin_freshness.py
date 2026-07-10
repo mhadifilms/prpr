@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pmr import connection
+from prpr import connection
 
 
 def test_version_tuple_parsing() -> None:

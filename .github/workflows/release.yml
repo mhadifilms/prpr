@@ -1,9 +1,9 @@
 name: Release
 
-# Publishes pmr to PyPI when a GitHub Release is published.
+# Publishes prpr to PyPI when a GitHub Release is published.
 # Uses PyPI Trusted Publishing (OIDC) — no API token or secret required.
-# One-time setup on PyPI: add a Trusted Publisher for project "pmr" pointing at
-#   owner: mhadifilms, repo: pmr, workflow: release.yml   (environment: leave blank)
+# One-time setup on PyPI: add a Trusted Publisher for project "prpr" pointing at
+#   owner: mhadifilms, repo: prpr, workflow: release.yml   (environment: leave blank)
 # PyPI supports a "pending publisher", so configure it before the first upload.
 
 on:

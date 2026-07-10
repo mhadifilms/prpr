@@ -11,8 +11,8 @@ import json
 import pytest
 from typer.testing import CliRunner
 
-from pmr.cli import session
-from pmr.cli.main import app
+from prpr.cli import session
+from prpr.cli.main import app
 from tests.conftest import SEQUENCE_INSPECT, MockBridge
 
 runner = CliRunner()
@@ -21,7 +21,7 @@ runner = CliRunner()
 @pytest.fixture
 def wired(monkeypatch):
     """Install a Premiere-on-mock-bridge as the CLI's provider."""
-    from pmr.premiere import Premiere
+    from prpr.premiere import Premiere
 
     bridge = MockBridge(
         {
@@ -41,7 +41,7 @@ def wired(monkeypatch):
     )
     premiere = Premiere(bridge=bridge)  # type: ignore[arg-type]
     session.set_premiere_provider(lambda: premiere)
-    monkeypatch.setenv("PMR_NO_DAEMON", "1")
+    monkeypatch.setenv("PRPR_NO_DAEMON", "1")
     yield bridge
     session.set_premiere_provider(None)
 
@@ -125,9 +125,9 @@ def test_effects_list(wired) -> None:
 
 
 def test_render_queue_not_supported(wired) -> None:
-    # CliRunner invokes `app` directly, so PmrError propagates as an
+    # CliRunner invokes `app` directly, so PrprError propagates as an
     # exception (main() is what renders it to stderr + exit 1 in real use).
-    from pmr import errors
+    from prpr import errors
 
     result = _run(["render", "queue"])
     assert result.exit_code != 0
@@ -135,7 +135,7 @@ def test_render_queue_not_supported(wired) -> None:
 
 
 def test_page_not_supported() -> None:
-    from pmr import errors
+    from prpr import errors
 
     result = _run(["page", "edit"])
     assert result.exit_code != 0

@@ -4,20 +4,20 @@ from __future__ import annotations
 
 import pytest
 
-from pmr import errors
+from prpr import errors
 from tests.conftest import MockBridge
 
 
 @pytest.fixture
 def premiere(mock_bridge: MockBridge):
-    from pmr.premiere import Premiere
+    from prpr.premiere import Premiere
 
     return Premiere(bridge=mock_bridge)  # type: ignore[arg-type]
 
 
 class TestSelectionGuard:
     def test_select_without_clear_refuses(self, premiere) -> None:
-        from pmr.timeline import Timeline
+        from prpr.timeline import Timeline
 
         timeline = Timeline(premiere, "Edit_v1")
         with pytest.raises(errors.NotSupportedError) as exc:
@@ -25,7 +25,7 @@ class TestSelectionGuard:
         assert "crashes Premiere" in exc.value.message
 
     def test_select_clear_calls_bridge(self, premiere, mock_bridge: MockBridge) -> None:
-        from pmr.timeline import Timeline
+        from prpr.timeline import Timeline
 
         mock_bridge.responses["selection_set"] = {"cleared": True}
         Timeline(premiere, "Edit_v1").select(clear=True)
@@ -35,7 +35,7 @@ class TestSelectionGuard:
 
 class TestTrackUpdate:
     def test_track_update_routes_args(self, premiere, mock_bridge: MockBridge) -> None:
-        from pmr.timeline import Timeline
+        from prpr.timeline import Timeline
 
         mock_bridge.responses["track_update"] = {"name": "V1", "muted": True}
         Timeline(premiere, "Edit_v1").track_update(0, mute=True, set_name="Hero")
@@ -62,7 +62,7 @@ class TestEffectsSetParam:
 
 class TestProjectSettings:
     def test_scratch_disks_read(self, premiere, mock_bridge: MockBridge) -> None:
-        from pmr.project import Project
+        from prpr.project import Project
 
         mock_bridge.responses["scratch_disks"] = {"capture": "MyDocuments"}
         proj = Project(premiere, {"name": "P"})
@@ -70,7 +70,7 @@ class TestProjectSettings:
         assert result["capture"] == "MyDocuments"
 
     def test_ingest_toggle(self, premiere, mock_bridge: MockBridge) -> None:
-        from pmr.project import Project
+        from prpr.project import Project
 
         mock_bridge.responses["ingest_settings"] = {"ingest_enabled": True}
         Project(premiere, {"name": "P"}).ingest(enabled=True)
@@ -95,19 +95,19 @@ class TestMediaSurface:
 
 class TestMainErrorRendering:
     def test_main_renders_pmr_error_json(self, monkeypatch, capsys) -> None:
-        """main() must catch PmrError and emit JSON to stderr, exit 1."""
+        """main() must catch PrprError and emit JSON to stderr, exit 1."""
         import sys
 
-        from pmr.cli import main as cli_main
-        from pmr.cli import session
+        from prpr.cli import main as cli_main
+        from prpr.cli import session
 
         def boom() -> None:
             raise errors.TimelineError("boom", cause="c", fix="f")
 
         session.set_premiere_provider(boom)  # type: ignore[arg-type]
-        monkeypatch.setenv("PMR_NO_DAEMON", "1")
-        monkeypatch.setenv("PMR_FORMAT", "json")
-        monkeypatch.setattr(sys, "argv", ["pmr", "timeline", "list"])
+        monkeypatch.setenv("PRPR_NO_DAEMON", "1")
+        monkeypatch.setenv("PRPR_FORMAT", "json")
+        monkeypatch.setattr(sys, "argv", ["prpr", "timeline", "list"])
         try:
             with pytest.raises(SystemExit) as exc:
                 cli_main.main()

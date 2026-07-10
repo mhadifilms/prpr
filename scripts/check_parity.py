@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Parity-matrix consistency check (CI + local).
 
-Validates the dvr↔pmr contract from pmr/schema.py:
+Validates the dvr↔prpr contract from prpr/schema.py:
 
 1. Every parity entry has a valid status; dvr-only entries carry a reason.
-2. Naming convention: every operation marked ``both`` or ``pmr-only`` has a
+2. Naming convention: every operation marked ``both`` or ``prpr-only`` has a
    corresponding MCP tool and/or library capability (dots → underscores),
    so the matrix can't drift from the implementation.
 3. When the sibling dvr checkout is present (local dev), cross-check that
    both repos agree on shared operation names and statuses (a ``dvr-only``
-   op here must not be ``pmr-only`` there, etc.).
+   op here must not be ``prpr-only`` there, etc.).
 
 Exit code 1 on any violation — wired into CI so agents extending either
 repo are forced to keep the matrix truthful.
@@ -22,9 +22,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from pmr.schema import PARITY
+from prpr.schema import PARITY
 
-VALID_STATUSES = {"both", "dvr-only", "pmr-only"}
+VALID_STATUSES = {"both", "dvr-only", "prpr-only"}
 
 # Operations whose implementation lives purely in the library/CLI layer and
 # has no MCP tool by design.
@@ -93,7 +93,7 @@ NO_TOOL_EXPECTED = {
 
 def tool_names() -> set[str]:
     try:
-        from pmr.mcp.server import build_registry
+        from prpr.mcp.server import build_registry
     except Exception as exc:  # pragma: no cover - mcp still being built
         print(f"note: MCP registry unavailable ({exc}); skipping tool mapping check")
         return set()
@@ -143,15 +143,15 @@ def main() -> int:
             only_here = set(PARITY) - set(dvr_parity)
             only_there = set(dvr_parity) - set(PARITY)
             for op in sorted(only_here):
-                failures.append(f"{op}: present in pmr's PARITY but missing from dvr's")
+                failures.append(f"{op}: present in prpr's PARITY but missing from dvr's")
             for op in sorted(only_there):
-                failures.append(f"{op}: present in dvr's PARITY but missing from pmr's")
+                failures.append(f"{op}: present in dvr's PARITY but missing from prpr's")
             shared = set(PARITY) & set(dvr_parity)
             for op in sorted(shared):
                 ours, theirs = PARITY[op].get("status"), dvr_parity[op].get("status")
                 if ours != theirs:
                     failures.append(
-                        f"{op}: status mismatch — pmr says {ours!r}, dvr says {theirs!r}"
+                        f"{op}: status mismatch — prpr says {ours!r}, dvr says {theirs!r}"
                     )
             print(f"cross-checked {len(shared)} shared operations against dvr")
 

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/mhadifilms/pmr/main/assets/logo.svg" alt="pmr logo" width="140">
+  <img src="https://raw.githubusercontent.com/mhadifilms/prpr/main/assets/logo.svg" alt="prpr logo" width="140">
 </p>
 
-# pmr
+# prpr
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -10,14 +10,14 @@
 
 Declarative. Scriptable. LLM-friendly. Structural sibling of [`dvr`](https://github.com/mhadifilms/dvr) (the same project for DaVinci Resolve) — same namespaces, same routing, same error model.
 
-`pmr` is a command-line tool, a typed Python library, and a [Model Context Protocol (MCP)](mcp.md) server for automating **Adobe Premiere Pro** — editing, sequencing, effects, and export. It drives Premiere's UXP API through a bundled bridge plugin, wraps it in clean idempotent operations with structured JSON output, and makes it usable by humans, scripts, and AI agents (Claude, Cursor, and any MCP-compatible client).
+`prpr` is a command-line tool, a typed Python library, and a [Model Context Protocol (MCP)](mcp.md) server for automating **Adobe Premiere Pro** — editing, sequencing, effects, and export. It drives Premiere's UXP API through a bundled bridge plugin, wraps it in clean idempotent operations with structured JSON output, and makes it usable by humans, scripts, and AI agents (Claude, Cursor, and any MCP-compatible client).
 
 ```bash
-pip install pmr
+pip install prpr
 ```
 
 ```bash
-$ pmr timeline inspect
+$ prpr timeline inspect
 {
   "name": "Edit_v1",
   "fps": 23.976,
@@ -35,21 +35,21 @@ $ pmr timeline inspect
 
 ## How it connects
 
-Premiere has no external scripting socket — its UXP API runs *inside* the app, and UXP plugins can only dial **out**. So `pmr` inverts the connection:
+Premiere has no external scripting socket — its UXP API runs *inside* the app, and UXP plugins can only dial **out**. So `prpr` inverts the connection:
 
 ```
-pmr CLI / library / MCP  ──hosts──▶  ws://127.0.0.1:8855  ◀──dials in──  pmr bridge panel (UXP, inside Premiere)
+prpr CLI / library / MCP  ──hosts──▶  ws://127.0.0.1:8855  ◀──dials in──  prpr bridge panel (UXP, inside Premiere)
 ```
 
 One-time setup:
 
 ```bash
-pmr plugin install     # packages + installs the bridge panel via Adobe's installer
-# then in Premiere: Window > UXP Plugins > pmr bridge (dock it once, it reconnects forever)
-pmr doctor --probe     # verify the whole chain
+prpr plugin install     # packages + installs the bridge panel via Adobe's installer
+# then in Premiere: Window > UXP Plugins > prpr bridge (dock it once, it reconnects forever)
+prpr doctor --probe     # verify the whole chain
 ```
 
-## Why pmr exists
+## Why prpr exists
 
 Premiere's UXP API is powerful but locked inside the app:
 
@@ -59,18 +59,18 @@ Premiere's UXP API is powerful but locked inside the app:
 - **Silent failures.** `importFiles()` returns `false` and moves on with its day.
 - **No batch operators, no inspection.** You loop `getVideoTrack(i)` → `getTrackItems(...)` → six async getters per clip.
 
-`pmr` wraps all of it: one `inspect()` call returns full structured state, mutations are single undoable transactions, every failure decodes into an error with a `cause`, a `fix`, and a `state` snapshot.
+`prpr` wraps all of it: one `inspect()` call returns full structured state, mutations are single undoable transactions, every failure decodes into an error with a `cause`, a `fix`, and a `state` snapshot.
 
 ## Three ways to use it
 
 ### 1. Python library
 
 ```python
-from pmr import Premiere
+from prpr import Premiere
 
 p = Premiere()                        # hosts the bridge, launches Premiere if needed
 
-p.project.ensure("MyShow")            # open-or-create ~/Documents/pmr Projects/MyShow.prproj
+p.project.ensure("MyShow")            # open-or-create ~/Documents/prpr Projects/MyShow.prproj
 p.media.import_(["/footage/a.mp4"], bin="Footage")
 
 tl = p.timeline.ensure("Edit_v1")
@@ -87,26 +87,26 @@ print(job.output_path)
 ### 2. CLI
 
 ```bash
-$ pmr project ensure MyShow
-$ pmr media import /footage/*.mp4 --bin Footage
-$ pmr timeline inspect | jq '.tracks.video[].items'
-$ pmr render submit --target-dir /exports --preset prores-422 --wait
-$ pmr apply spec.yaml            # terraform-style declarative reconcile
+$ prpr project ensure MyShow
+$ prpr media import /footage/*.mp4 --bin Footage
+$ prpr timeline inspect | jq '.tracks.video[].items'
+$ prpr render submit --target-dir /exports --preset prores-422 --wait
+$ prpr apply spec.yaml            # terraform-style declarative reconcile
 ```
 
 ### 3. MCP server (for LLM agents)
 
 ```bash
-$ pmr mcp install-claude     # one-shot Claude Desktop setup
-$ pmr mcp serve              # or run the stdio server yourself
-$ pmr mcp tools              # introspect the typed tools
+$ prpr mcp install-claude     # one-shot Claude Desktop setup
+$ prpr mcp serve              # or run the stdio server yourself
+$ prpr mcp tools              # introspect the typed tools
 ```
 
-## dvr ↔ pmr: one convention, two apps
+## dvr ↔ prpr: one convention, two apps
 
-`pmr` and [`dvr`](https://github.com/mhadifilms/dvr) share naming, routing, output envelopes, and the error model. An agent (or human) that knows one knows the other:
+`prpr` and [`dvr`](https://github.com/mhadifilms/dvr) share naming, routing, output envelopes, and the error model. An agent (or human) that knows one knows the other:
 
-| | dvr (Resolve) | pmr (Premiere) |
+| | dvr (Resolve) | prpr (Premiere) |
 |---|---|---|
 | `timeline inspect` | ✅ | ✅ |
 | `media import --bin` | ✅ | ✅ |
@@ -118,7 +118,7 @@ $ pmr mcp tools              # introspect the typed tools
 Operations one app can't perform **fail loudly** with a structured `NotSupportedError` explaining why and what to use instead — never silent degradation. The machine-readable support matrix ships in both packages:
 
 ```bash
-$ pmr schema show parity | jq '.operations["render.queue"]'
+$ prpr schema show parity | jq '.operations["render.queue"]'
 {"status": "dvr-only", "reason": "no enumerable render queue in UXP"}
 ```
 
@@ -133,7 +133,7 @@ $ pmr schema show parity | jq '.operations["render.queue"]'
 - [Getting started](getting-started.md)
 - [Library guide](library.md) · [CLI reference](cli.md) · [MCP server](mcp.md)
 - [Declarative specs](spec.md) · [Daemon mode](daemon.md)
-- [dvr ↔ pmr parity](parity.md)
+- [dvr ↔ prpr parity](parity.md)
 
 ## License
 

@@ -5,7 +5,7 @@ Real workflows, all validated against live Premiere Pro.
 ## Assemble a rough cut from a folder
 
 ```python
-from pmr import Premiere, scan_media_files
+from prpr import Premiere, scan_media_files
 
 p = Premiere()
 p.project.ensure("RoughCut")
@@ -46,7 +46,7 @@ timelines:
 ```
 
 ```bash
-pmr apply show.yaml --verify      # idempotent; safe to re-run
+prpr apply show.yaml --verify      # idempotent; safe to re-run
 ```
 
 ## Ken Burns (keyframed transform)
@@ -71,7 +71,7 @@ for clip in tl.items("video"):
 ## Snapshot before an experiment, diff after
 
 ```python
-from pmr import snapshot, diff
+from prpr import snapshot, diff
 
 snap = snapshot.capture(p); snapshot.save(snap)
 # ... make changes ...
@@ -81,13 +81,13 @@ print(d.to_dict())
 
 ## One editor, two NLEs
 
-Because `pmr` and [`dvr`](https://github.com/mhadifilms/dvr) share routing,
+Because `prpr` and [`dvr`](https://github.com/mhadifilms/dvr) share routing,
 the same driver code targets either app — swap the import and the ops that
 exist in both Just Work; the ones that don't fail loudly:
 
 ```python
 try:
-    from pmr import Premiere as NLE          # or: from dvr import Resolve as NLE
+    from prpr import Premiere as NLE          # or: from dvr import Resolve as NLE
 except ImportError:
     from dvr import Resolve as NLE
 
@@ -95,5 +95,5 @@ app = NLE()
 app.project.ensure("Show")
 tl = app.timeline.ensure("Edit")
 tl.add_marker(1.0, name="start")             # 'both' — works on either
-# app.render.queue()                          # raises NotSupportedError on pmr
+# app.render.queue()                          # raises NotSupportedError on prpr
 ```

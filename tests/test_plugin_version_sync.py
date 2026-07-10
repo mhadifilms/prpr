@@ -35,7 +35,7 @@ def test_manifest_and_js_version_match(plugin_dir: Path) -> None:
 
 
 def test_manifest_version_matches_bundled_helper() -> None:
-    from pmr import connection
+    from prpr import connection
 
     # bundled_plugin_version() reads the default (headless) plugin manifest.
     manifest = json.loads((REPO / "plugin" / "manifest.json").read_text())

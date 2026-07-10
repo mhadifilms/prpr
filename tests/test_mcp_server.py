@@ -7,7 +7,7 @@ import os
 
 import pytest
 
-from pmr.mcp.server import build_registry
+from prpr.mcp.server import build_registry
 
 
 @pytest.fixture(scope="module")
@@ -87,7 +87,7 @@ def test_schemas_are_valid_json_objects(registry) -> None:
 
 
 def test_not_supported_tools_fail_structurally(registry) -> None:
-    from pmr import errors
+    from prpr import errors
 
     by_name = {tool.name: tool for tool in registry}
     for name in ("render_queue", "page_set", "interchange_import", "media_relink"):
@@ -106,21 +106,21 @@ def test_offline_tools_do_not_need_premiere(registry) -> None:
 def test_eval_gated_by_env(monkeypatch, registry) -> None:
     """eval is always registered but its handler refuses without the env gate
     (handler-level gating: agents see the tool and get an actionable error)."""
-    from pmr import errors
+    from prpr import errors
 
     by_name = {tool.name: tool for tool in registry}
     assert "eval" in by_name
-    monkeypatch.delenv("PMR_MCP_ENABLE_EVAL", raising=False)
-    with pytest.raises(errors.PmrError) as exc_info:
+    monkeypatch.delenv("PRPR_MCP_ENABLE_EVAL", raising=False)
+    with pytest.raises(errors.PrprError) as exc_info:
         by_name["eval"].handler(None, {"code": "return 1"})
-    assert "PMR_MCP_ENABLE_EVAL" in str(exc_info.value)
+    assert "PRPR_MCP_ENABLE_EVAL" in str(exc_info.value)
 
 
 def test_parity_matrix_agrees_with_registry() -> None:
-    """Every pmr-only op in PARITY that maps to a tool exists; every
+    """Every prpr-only op in PARITY that maps to a tool exists; every
     dvr-only tool that is registered raises NotSupportedError."""
-    from pmr import errors
-    from pmr.schema import PARITY
+    from prpr import errors
+    from prpr.schema import PARITY
 
     registry = build_registry()
     by_name = {tool.name: tool for tool in registry}
@@ -138,7 +138,7 @@ def test_parity_matrix_agrees_with_registry() -> None:
         with pytest.raises(errors.NotSupportedError):
             tool.handler(None, {"name": "x", "format": "x", "topic": "x"})
 
-    assert PARITY["effects.apply"]["status"] == "pmr-only"
+    assert PARITY["effects.apply"]["status"] == "prpr-only"
     assert "effect_apply" in by_name
 
 

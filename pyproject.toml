@@ -3,7 +3,7 @@ requires = ["hatchling>=1.21", "hatch-vcs>=0.4"]
 build-backend = "hatchling.build"
 
 [project]
-name = "pmr"
+name = "prpr"
 dynamic = ["version"]
 description = "Adobe Premiere Pro CLI, Python library, and MCP server. Automate editing, sequencing, and export with LLM-friendly tools for AI agents. Declarative, scriptable, structured JSON output."
 readme = "README.md"
@@ -67,34 +67,34 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mhadifilms/pmr"
-Documentation = "https://mhadifilms.github.io/pmr"
-Repository = "https://github.com/mhadifilms/pmr"
-Issues = "https://github.com/mhadifilms/pmr/issues"
-Changelog = "https://github.com/mhadifilms/pmr/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/mhadifilms/prpr"
+Documentation = "https://mhadifilms.github.io/prpr"
+Repository = "https://github.com/mhadifilms/prpr"
+Issues = "https://github.com/mhadifilms/prpr/issues"
+Changelog = "https://github.com/mhadifilms/prpr/blob/main/CHANGELOG.md"
 
 [project.scripts]
-pmr = "pmr.cli.main:main"
+prpr = "prpr.cli.main:main"
 
 [tool.hatch.version]
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "pmr/_version.py"
+version-file = "prpr/_version.py"
 
 [tool.hatch.build.targets.sdist]
-include = ["pmr", "plugin", "tests", "README.md", "LICENSE", "CHANGELOG.md"]
+include = ["prpr", "plugin", "tests", "README.md", "LICENSE", "CHANGELOG.md"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["pmr"]
+packages = ["prpr"]
 
 [tool.hatch.build.targets.wheel.force-include]
-plugin = "pmr/plugin_assets"
+plugin = "prpr/plugin_assets"
 
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-extend-exclude = ["pmr/_version.py"]
+extend-exclude = ["prpr/_version.py"]
 
 [tool.ruff.lint]
 select = [
@@ -132,23 +132,23 @@ ignore_missing_imports = true
 # in those modules — the boundary is the whole point.
 [[tool.mypy.overrides]]
 module = [
-    "pmr.bridge",
-    "pmr.connection",
-    "pmr.daemon",
-    "pmr.effects",
-    "pmr.events",
-    "pmr.interchange",
-    "pmr.media",
-    "pmr.premiere",
-    "pmr.project",
-    "pmr.render",
-    "pmr.timeline",
+    "prpr.bridge",
+    "prpr.connection",
+    "prpr.daemon",
+    "prpr.effects",
+    "prpr.events",
+    "prpr.interchange",
+    "prpr.media",
+    "prpr.premiere",
+    "prpr.project",
+    "prpr.render",
+    "prpr.timeline",
 ]
 warn_return_any = false
 
 # MCP server uses untyped third-party decorators; allow them.
 [[tool.mypy.overrides]]
-module = ["pmr.mcp.*"]
+module = ["prpr.mcp.*"]
 disallow_untyped_decorators = false
 disallow_untyped_calls = false
 warn_return_any = false
@@ -158,6 +158,6 @@ minversion = "8.0"
 addopts = "-ra -q --strict-markers"
 testpaths = ["tests"]
 markers = [
-    "integration: requires a running Adobe Premiere Pro instance with the pmr bridge plugin",
+    "integration: requires a running Adobe Premiere Pro instance with the prpr bridge plugin",
     "macos: macOS-only behavior",
 ]

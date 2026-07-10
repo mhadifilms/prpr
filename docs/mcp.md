@@ -1,20 +1,20 @@
 # MCP server
 
-`pmr` ships a [Model Context Protocol](https://modelcontextprotocol.io)
+`prpr` ships a [Model Context Protocol](https://modelcontextprotocol.io)
 server so LLM agents (Claude, Cursor, and any MCP client) drive Premiere
 through typed tools instead of shell parsing.
 
 ## Setup
 
 ```bash
-pmr mcp install-claude    # writes Claude Desktop's config
-pmr mcp install-cursor    # writes Cursor's config
-pmr mcp serve             # or run the stdio server yourself
-pmr mcp tools --detail    # introspect all tools + schemas
+prpr mcp install-claude    # writes Claude Desktop's config
+prpr mcp install-cursor    # writes Cursor's config
+prpr mcp serve             # or run the stdio server yourself
+prpr mcp tools --detail    # introspect all tools + schemas
 ```
 
 The server hosts the bridge itself — with Premiere running and the
-`pmr bridge` panel open, tools connect lazily on first call. Meta tools
+`prpr bridge` panel open, tools connect lazily on first call. Meta tools
 (`version`, `doctor`, `media_scan`, `render_presets`, static `schema`
 topics) work even without Premiere, so first-time setup is instant.
 
@@ -22,7 +22,7 @@ topics) work even without Premiere, so first-time setup is instant.
 
 77 tools mirroring [`dvr`](https://github.com/mhadifilms/dvr)'s tool names
 wherever the capability exists in both apps — an agent that knows dvr's
-tools already knows pmr's:
+tools already knows prpr's:
 
 - **State**: `ping`, `inspect`, `timeline_inspect`, `clip_where`,
   `media_inspect`, `media_bins`, `media_ls`
@@ -31,7 +31,7 @@ tools already knows pmr's:
 - **Markers**: `marker_add`, `marker_list`, `marker_remove`
 - **Media**: `media_import`, `media_scan`, `media_bin_ensure`,
   `media_move`, `media_subclip`, `media_attach_proxy`, `media_transcribe`
-- **Effects (pmr-only)**: `effects_list`, `effect_apply`,
+- **Effects (prpr-only)**: `effects_list`, `effect_apply`,
   `effect_param_set` (transforms + keyframes), `transition_add`,
   `clip_components`, `timeline_insert_mogrt`, `timeline_scene_detect`
 - **Export**: `render_presets`, `render_submit`, `render_frame`,
@@ -48,12 +48,12 @@ get an actionable failure, never a missing tool. See
 
 ## Resources
 
-`pmr://inspect`, `pmr://timeline/current`, `pmr://media/bins`,
-`pmr://render/presets`, `pmr://doctor`, and `pmr://schema/<topic>`.
+`prpr://inspect`, `prpr://timeline/current`, `prpr://media/bins`,
+`prpr://render/presets`, `prpr://doctor`, and `prpr://schema/<topic>`.
 
 ## Eval escape hatch
 
-Set `PMR_MCP_ENABLE_EVAL=1` to expose the `eval` tool, which runs raw
+Set `PRPR_MCP_ENABLE_EVAL=1` to expose the `eval` tool, which runs raw
 JavaScript inside Premiere with the full `premierepro` module in scope
 (the body of an `async (ppro, uxp, H, args) => {...}` function). dvr's
 `eval` runs Python against Resolve; same tool name, same gate, same

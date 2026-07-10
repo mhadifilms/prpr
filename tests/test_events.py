@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from pmr import errors
+from prpr import errors
 from tests.conftest import MockBridge
 
 
 @pytest.fixture
 def premiere(mock_bridge: MockBridge):
-    from pmr.premiere import Premiere
+    from prpr.premiere import Premiere
 
     # eval_js for target resolution + subscribe/unsubscribe ops.
     mock_bridge.responses["<raw-eval>"] = mock_bridge.make_ref("Project")
@@ -31,7 +31,7 @@ def test_subscribe_global_routes_events(premiere, mock_bridge: MockBridge) -> No
 
 
 def test_unknown_target_raises(premiere) -> None:
-    with pytest.raises(errors.PmrError):
+    with pytest.raises(errors.PrprError):
         premiere.events.subscribe("nope", "X", lambda e: None)
 
 

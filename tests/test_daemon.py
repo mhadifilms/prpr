@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from pmr import daemon, errors
+from prpr import daemon, errors
 
 
 def test_methods_include_allowlist_and_cli() -> None:
@@ -17,14 +17,14 @@ def test_methods_include_allowlist_and_cli() -> None:
 
 def test_socket_and_pid_paths_agree() -> None:
     sock = daemon.socket_path()
-    assert sock.name == "pmr.sock"
-    assert daemon.pid_path().name == "pmr.pid"
+    assert sock.name == "prpr.sock"
+    assert daemon.pid_path().name == "prpr.pid"
     assert daemon.pid_path().parent == sock.parent
 
 
 def test_status_when_not_running(tmp_path, monkeypatch) -> None:
-    monkeypatch.setattr(daemon, "socket_path", lambda: tmp_path / "pmr.sock")
-    monkeypatch.setattr(daemon, "pid_path", lambda: tmp_path / "pmr.pid")
+    monkeypatch.setattr(daemon, "socket_path", lambda: tmp_path / "prpr.sock")
+    monkeypatch.setattr(daemon, "pid_path", lambda: tmp_path / "prpr.pid")
     status = daemon.status()
     assert status["running"] is False
     assert status["pid"] is None
@@ -48,7 +48,7 @@ def test_serialize_prefers_to_dict() -> None:
 
 
 def test_dispatch_rejects_unknown_method() -> None:
-    with pytest.raises(errors.PmrError) as exc:
+    with pytest.raises(errors.PrprError) as exc:
         daemon._dispatch(object(), "does.not.exist", None)  # type: ignore[arg-type]
     assert "Unknown method" in exc.value.message
 

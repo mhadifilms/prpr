@@ -1,6 +1,6 @@
 # Declarative specs
 
-`pmr apply` reconciles a YAML/JSON description of desired project state
+`prpr apply` reconciles a YAML/JSON description of desired project state
 against the live project, terraform-style: compute a plan, execute only
 what's missing, optionally verify by re-planning. Same format family as
 `dvr`'s specs.
@@ -40,11 +40,11 @@ timelines:
 ## Commands
 
 ```bash
-pmr apply plan show.yaml       # print the plan, change nothing
-pmr apply show.yaml            # reconcile
-pmr apply show.yaml --verify   # reconcile, then re-plan; fail if anything remains
-pmr spec export -o show.yaml   # reverse-engineer a spec from live state
-pmr diff spec show.yaml        # structural diff: live vs spec
+prpr apply plan show.yaml       # print the plan, change nothing
+prpr apply show.yaml            # reconcile
+prpr apply show.yaml --verify   # reconcile, then re-plan; fail if anything remains
+prpr spec export -o show.yaml   # reverse-engineer a spec from live state
+prpr diff spec show.yaml        # structural diff: live vs spec
 ```
 
 ## Semantics
@@ -59,7 +59,7 @@ pmr diff spec show.yaml        # structural diff: live vs spec
 ## Library
 
 ```python
-from pmr import spec
+from prpr import spec
 
 s = spec.load_spec("show.yaml")
 actions = spec.plan(s, p)          # list of {op, target, detail}

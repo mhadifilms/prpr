@@ -1,4 +1,4 @@
-# pmr — agent notes
+# prpr — agent notes
 
 CLI + Python library + MCP server for Adobe Premiere Pro, driven through a
 bundled UXP bridge panel. Structural sibling of `../dvr` (DaVinci Resolve):
@@ -6,27 +6,27 @@ same namespaces, routing, output conventions, and error model.
 
 ## The one rule
 
-**Keep pmr and dvr in sync.** Before adding or renaming any command, MCP
+**Keep prpr and dvr in sync.** Before adding or renaming any command, MCP
 tool, or namespace: read `docs/parity.md`, update `PARITY` in
-`pmr/schema.py` (and its dvr counterpart), and run
+`prpr/schema.py` (and its dvr counterpart), and run
 `python scripts/check_parity.py`. Operations the other app can't perform
 must fail with `NotSupportedError` (cause + fix), never be silently absent.
 
 ## Architecture in one breath
 
-Python hosts `ws://127.0.0.1:8855` (`pmr/bridge.py`); the UXP panel
+Python hosts `ws://127.0.0.1:8855` (`prpr/bridge.py`); the UXP panel
 (`plugin/main.js`, generic RPC executor) dials in from inside Premiere.
-Host-side semantics live in JS snippets in `pmr/_js.py` (lockedAccess +
+Host-side semantics live in JS snippets in `prpr/_js.py` (lockedAccess +
 executeTransaction rules); Python wrappers in `premiere/project/timeline/
 media/render/effects.py` mirror dvr's object model. Daemon
-(`pmr/daemon.py`) shares one bridge across CLI calls — dvr's wire format.
+(`prpr/daemon.py`) shares one bridge across CLI calls — dvr's wire format.
 
 ## Working on this repo
 
 - venv: `.venv/bin/python`; tests: `.venv/bin/python -m pytest -q` (mock
-  bridge, no Premiere needed); lint: `ruff check pmr tests --fix`.
+  bridge, no Premiere needed); lint: `ruff check prpr tests --fix`.
 - Live testing needs Premiere running with the bridge panel open once:
-  `pmr plugin install`, then Window > UXP Plugins > pmr bridge. For dev
+  `prpr plugin install`, then Window > UXP Plugins > prpr bridge. For dev
   reloads use Adobe's devtools CLI (`uxp plugin load` from `plugin/`,
   x86_64 Node via Rosetta on Apple Silicon — see docs/getting-started.md).
 - Time crosses the bridge in **seconds**; Premiere ticks are

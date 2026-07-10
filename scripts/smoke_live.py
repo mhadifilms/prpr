@@ -19,9 +19,9 @@ import tempfile
 import time
 from pathlib import Path
 
-from pmr import Premiere, interchange
-from pmr import snapshot as snapshot_mod
-from pmr import spec as spec_mod
+from prpr import Premiere, interchange
+from prpr import snapshot as snapshot_mod
+from prpr import spec as spec_mod
 
 
 def _stage(name: str) -> None:
@@ -34,7 +34,7 @@ def main(argv: list[str]) -> int:
         print("usage: smoke_live.py <clip.mov> [more clips...] (need at least one)")
         return 2
 
-    workdir = Path(tempfile.mkdtemp(prefix="pmr-smoke-"))
+    workdir = Path(tempfile.mkdtemp(prefix="prpr-smoke-"))
     p = Premiere(timeout=45)
 
     _stage("app + connection")

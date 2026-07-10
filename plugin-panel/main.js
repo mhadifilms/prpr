@@ -1,7 +1,7 @@
-/* pmr bridge — generic RPC executor for Premiere Pro's UXP API.
+/* prpr bridge — generic RPC executor for Premiere Pro's UXP API.
  *
  * The plugin is intentionally thin and generic: it connects OUT to a local
- * WebSocket server hosted by the `pmr` Python daemon (UXP panels cannot
+ * WebSocket server hosted by the `prpr` Python daemon (UXP panels cannot
  * listen on sockets) and executes structured RPC requests against the
  * `premierepro` module. All semantics — naming, validation, error decoding —
  * live on the Python side, so this plugin rarely needs updating.
@@ -312,7 +312,7 @@ const OPS = {
       }
       executed = project.executeTransaction((compound) => {
         for (const action of actions) compound.addAction(action);
-      }, req.label || "pmr");
+      }, req.label || "prpr");
     });
     if (stepError) throw stepError;
     return { executed: executed !== false, steps: steps.length };
@@ -448,9 +448,9 @@ function updateStatus(url) {
     el.className = "ok";
     if (detail) detail.textContent = `${url || ""}  ·  ${requestCount} requests served`;
   } else {
-    el.textContent = "waiting for pmr daemon…";
+    el.textContent = "waiting for prpr daemon…";
     el.className = "waiting";
-    if (detail) detail.textContent = "run `pmr serve start` (or any pmr command) to connect";
+    if (detail) detail.textContent = "run `prpr serve start` (or any prpr command) to connect";
   }
 }
 

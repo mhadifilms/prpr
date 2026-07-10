@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import pytest
 
-from pmr.mcp.server import _Context, _PremiereCache, build_registry
-from pmr.premiere import Premiere
+from prpr.mcp.server import _Context, _PremiereCache, build_registry
+from prpr.premiere import Premiere
 from tests.conftest import SEQUENCE_INSPECT, MockBridge
 
 

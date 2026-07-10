@@ -12,16 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 First stable release.
 
 ### Added
-- Plugin freshness check: on connect, pmr compares the running bridge to
+- Plugin freshness check: on connect, prpr compares the running bridge to
   the version bundled in the pip package and (by default) UPIA-reinstalls
-  the newer one so a `pip install -U pmr` refreshes the in-Premiere bridge
-  on the next Premiere launch. Opt out with `PMR_PLUGIN_AUTOUPDATE=0`;
-  surfaced in `pmr plugin check` and `pmr doctor --probe`.
+  the newer one so a `pip install -U prpr` refreshes the in-Premiere bridge
+  on the next Premiere launch. Opt out with `PRPR_PLUGIN_AUTOUPDATE=0`;
+  surfaced in `prpr plugin check` and `prpr doctor --probe`.
 
 ### Changed
 - Development status promoted to Production/Stable.
 - Packaging hardened for distribution: the headless plugin ships inside
-  the wheel (`pmr/plugin_assets/`); dev-tools session files are excluded.
+  the wheel (`prpr/plugin_assets/`); dev-tools session files are excluded.
 
 ## [0.3.0] - 2026-07-10
 
@@ -30,10 +30,10 @@ First stable release.
   plugin whose `main.js` opens the WebSocket connection at module load —
   no panel to dock, no menu to click. A UPIA-installed command plugin runs
   its code automatically at Premiere startup (verified on 26.5: connects
-  with no panel and no developer tools). Setup is now just `pmr plugin
+  with no panel and no developer tools). Setup is now just `prpr plugin
   install` + one Premiere restart; the bridge then starts with Premiere
   every launch and reconnects on its own.
-- `pmr plugin autostart` → `pmr plugin check` (confirms the headless
+- `prpr plugin autostart` → `prpr plugin check` (confirms the headless
   bridge is connected). Install/doctor/error messages updated accordingly.
 
 ### Added
@@ -71,8 +71,8 @@ sequence export, FCPXML export, snapshot, spec.
 - **Host events**: `p.events.subscribe`/`on`/`off` (EventManager —
   project/sequence/encoder/global events delivered to Python handlers on
   the bridge thread).
-- **CLI/MCP** commands and tools for the above; `pmr/__main__.py`
-  (`python -m pmr`).
+- **CLI/MCP** commands and tools for the above; `prpr/__main__.py`
+  (`python -m prpr`).
 - `scripts/smoke_live.py` full live E2E; `scripts/check_parity.py`
   cross-repo status/key-symmetry check. mypy (strict) added to CI.
 - Parity matrix grown to 106 operations, synced with dvr.
@@ -91,14 +91,14 @@ Initial release. Structural sibling of [dvr](https://github.com/mhadifilms/dvr) 
 
 ### Added
 
-- **Bridge architecture**: bundled UXP panel (`pmr bridge`) that dials into a
+- **Bridge architecture**: bundled UXP panel (`prpr bridge`) that dials into a
   local WebSocket server hosted by the Python side; generic RPC executor
   (`call`/`get`/`set`/`eval`/`transaction`/`subscribe`) with an object-handle
   registry, so the full `premierepro` API surface is reachable without plugin
   updates. Live-validated against Premiere Pro 26.5.
-- **Python library** (`pmr.Premiere`) mirroring dvr's object model:
+- **Python library** (`prpr.Premiere`) mirroring dvr's object model:
   - `project`: list open projects, `ensure`/`create`/`load`/`save`/`delete`
-    (file-based, `PMR_PROJECTS_DIR` convention)
+    (file-based, `PRPR_PROJECTS_DIR` convention)
   - `timeline`: sequences with dvr's timeline routing — `list`/`current`/
     `ensure`/`create`/`switch`/`delete`/`rename`, full `inspect()` (fps, frame
     size, tracks, items, markers, settings), `append`/`insert`/`delete_clips`,
@@ -119,19 +119,19 @@ Initial release. Structural sibling of [dvr](https://github.com/mhadifilms/dvr) 
   plan/verify, `from_live` export), `diff` (timelines/spec/snapshot),
   `snapshot` (capture/restore), `lint` (offline media, temp paths, empty
   sequences)
-- **Daemon** (`pmr serve`): Unix-socket RPC holding the bridge across CLI
+- **Daemon** (`prpr serve`): Unix-socket RPC holding the bridge across CLI
   invocations, dvr wire format, full-CLI forwarding
-- **CLI** (`pmr`): dvr's command tree with identical output conventions
-  (json/table/yaml, `PMR_FORMAT`, TTY auto-detection)
-- **MCP server** (`pmr mcp serve`): dvr's tool names and registration
+- **CLI** (`prpr`): dvr's command tree with identical output conventions
+  (json/table/yaml, `PRPR_FORMAT`, TTY auto-detection)
+- **MCP server** (`prpr mcp serve`): dvr's tool names and registration
   pattern; typed tools for every library capability
-- **Cross-app parity contract**: `pmr.errors.NotSupportedError` for
+- **Cross-app parity contract**: `prpr.errors.NotSupportedError` for
   operations Premiere's UXP API cannot perform (render queue enumeration,
   page switching, interchange import, ...), each with cause/fix pointing to
-  the closest alternative; machine-readable matrix at `pmr schema show parity`
-- **Diagnostics**: `pmr doctor [--probe]` (install/plugin/port checks),
-  structured `PmrError` hierarchy with `cause`/`fix`/`state` on every failure
-- **Plugin management**: `pmr plugin install|uninstall|status` via Adobe's
+  the closest alternative; machine-readable matrix at `prpr schema show parity`
+- **Diagnostics**: `prpr doctor [--probe]` (install/plugin/port checks),
+  structured `PrprError` hierarchy with `cause`/`fix`/`state` on every failure
+- **Plugin management**: `prpr plugin install|uninstall|status` via Adobe's
   UPIA installer with automatic `.ccx` packaging
 - Test suite (MockBridge at the wire boundary, no Premiere required)
 
@@ -142,7 +142,7 @@ Initial release. Structural sibling of [dvr](https://github.com/mhadifilms/dvr) 
 - `Sequence.setSelection` crashes Premiere 26.5 beta, so `timeline.select`
   supports read + clear only and refuses filtered selection.
 
-[1.0.0]: https://github.com/mhadifilms/pmr/releases/tag/v1.0.0
-[0.3.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.3.0
-[0.2.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.2.0
-[0.1.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.1.0
+[1.0.0]: https://github.com/mhadifilms/prpr/releases/tag/v1.0.0
+[0.3.0]: https://github.com/mhadifilms/prpr/releases/tag/v0.3.0
+[0.2.0]: https://github.com/mhadifilms/prpr/releases/tag/v0.2.0
+[0.1.0]: https://github.com/mhadifilms/prpr/releases/tag/v0.1.0

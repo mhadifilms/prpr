@@ -1,7 +1,7 @@
-/* pmr bridge — generic RPC executor for Premiere Pro's UXP API.
+/* prpr bridge — generic RPC executor for Premiere Pro's UXP API.
  *
  * The plugin is intentionally thin and generic: it connects OUT to a local
- * WebSocket server hosted by the `pmr` Python daemon (UXP panels cannot
+ * WebSocket server hosted by the `prpr` Python daemon (UXP panels cannot
  * listen on sockets) and executes structured RPC requests against the
  * `premierepro` module. All semantics — naming, validation, error decoding —
  * live on the Python side, so this plugin rarely needs updating.
@@ -312,7 +312,7 @@ const OPS = {
       }
       executed = project.executeTransaction((compound) => {
         for (const action of actions) compound.addAction(action);
-      }, req.label || "pmr");
+      }, req.label || "prpr");
     });
     if (stepError) throw stepError;
     return { executed: executed !== false, steps: steps.length };
@@ -440,7 +440,7 @@ function scheduleReconnect() {
 // ---------------------------------------------------------------------------
 
 // No DOM in a command-only plugin; status updates are no-ops. The bridge
-// runs entirely from module load: connect() opens the WebSocket to the pmr
+// runs entirely from module load: connect() opens the WebSocket to the prpr
 // daemon and the reconnect loop keeps it alive for the app's lifetime.
 function updateStatus() {}
 
@@ -449,12 +449,12 @@ try {
   if (uxpmod && uxpmod.entrypoints && typeof uxpmod.entrypoints.setup === "function") {
     uxpmod.entrypoints.setup({
       commands: {
-        "pmr.bridge.connect": {
+        "prpr.bridge.connect": {
           run() {
             // Force a fresh connection attempt on demand.
             try { if (ws) ws.close(); } catch (e) {}
             connect();
-            return "pmr bridge: reconnecting";
+            return "prpr bridge: reconnecting";
           },
         },
       },

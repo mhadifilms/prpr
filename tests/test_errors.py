@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from pmr import errors
+from prpr import errors
 
 
 def test_base_error_fields() -> None:
-    err = errors.PmrError(
+    err = errors.PrprError(
         "Something failed.",
         cause="the cause",
         fix="the fix",
@@ -67,9 +67,9 @@ def test_to_dict_schema() -> None:
     ],
 )
 def test_all_subclass_base(subclass: type) -> None:
-    assert issubclass(subclass, errors.PmrError)
+    assert issubclass(subclass, errors.PrprError)
     instance = subclass("message")
-    assert isinstance(instance, errors.PmrError)
+    assert isinstance(instance, errors.PrprError)
     assert instance.to_dict()["type"] == subclass.__name__
 
 

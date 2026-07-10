@@ -1,6 +1,6 @@
 {
-  "id": "pmr.bridge",
-  "name": "pmr bridge",
+  "id": "prpr.bridge",
+  "name": "prpr bridge",
   "version": "0.3.0",
   "main": "main.js",
   "manifestVersion": 5,
@@ -8,8 +8,8 @@
   "entrypoints": [
     {
       "type": "command",
-      "id": "pmr.bridge.connect",
-      "label": { "default": "pmr bridge: reconnect" }
+      "id": "prpr.bridge.connect",
+      "label": { "default": "prpr bridge: reconnect" }
     }
   ],
   "requiredPermissions": {

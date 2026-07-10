@@ -29,7 +29,7 @@ env/
 ENV/
 
 # Hatch / generated version file
-pmr/_version.py
+prpr/_version.py
 
 # Testing & coverage
 .pytest_cache/

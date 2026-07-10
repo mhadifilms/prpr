@@ -1,0 +1,204 @@
+"""Project-level operations.
+
+Premiere projects are files on disk (``.prproj``), not entries in a
+database like Resolve's project manager. ``prpr`` keeps dvr's namespace
+API (``list`` / ``current`` / ``ensure`` / ``create`` / ``load`` /
+``save``) with these semantics:
+
+- ``list()`` returns the projects **open** in Premiere right now.
+- ``ensure(name)`` opens or creates ``<projects-dir>/<name>.prproj``
+  (``PRPR_PROJECTS_DIR`` overrides the default documents location); a
+  path with ``/`` or ``.prproj`` is used verbatim.
+"""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
+
+from . import errors
+from ._js import snippet
+
+if TYPE_CHECKING:
+    from .premiere import Premiere
+
+
+def projects_dir() -> Path:
+    env = os.environ.get("PRPR_PROJECTS_DIR")
+    target = Path(env).expanduser() if env else Path.home() / "Documents" / "prpr Projects"
+    target.mkdir(parents=True, exist_ok=True)
+    return target
+
+
+def _resolve_project_path(name_or_path: str) -> Path:
+    raw = str(name_or_path)
+    if raw.endswith(".prproj") or "/" in raw or "\\" in raw:
+        return Path(raw).expanduser()
+    return projects_dir() / f"{raw}.prproj"
+
+
+class Project:
+    """The currently open project (Premiere's active project)."""
+
+    def __init__(self, premiere: Premiere, info: dict[str, Any]) -> None:
+        self._p = premiere
+        self._info = info
+
+    @property
+    def name(self) -> str:
+        return str(self._info.get("name", ""))
+
+    @property
+    def path(self) -> str | None:
+        return self._info.get("path")
+
+    def inspect(self) -> dict[str, Any]:
+        return self._p.eval_js(snippet("project_inspect"))
+
+    def save(self) -> dict[str, Any]:
+        return self._p.eval_js(snippet("project_save"))
+
+    def save_as(self, path: str) -> dict[str, Any]:
+        return self._p.eval_js(snippet("project_save_as"), {"path": str(path)})
+
+    def close(self, *, prompt_if_dirty: bool = False) -> dict[str, Any]:
+        return self._p.eval_js(snippet("project_close"), {"prompt_if_dirty": prompt_if_dirty})
+
+    def scratch_disks(
+        self, *, set_type: str | None = None, set_path: str | None = None
+    ) -> dict[str, Any]:
+        """Read (or set one of) the project's scratch disk paths.
+
+        Types: capture, video_preview, audio_preview, auto_save,
+        ccl_libraries, capsule_media."""
+        return self._p.eval_js(
+            snippet("scratch_disks"), {"set_type": set_type, "set_path": set_path}
+        )
+
+    def ingest(self, enabled: bool | None = None) -> dict[str, Any]:
+        """Read (or set) whether ingest is enabled for this project."""
+        return self._p.eval_js(snippet("ingest_settings"), {"enabled": enabled})
+
+    def color_settings(self) -> dict[str, Any]:
+        """Project color settings (graphics white luminance)."""
+        return self._p.eval_js(snippet("color_settings"))
+
+    def import_sequences(
+        self, project_path: str, sequence_guids: list[str] | None = None
+    ) -> dict[str, Any]:
+        """Import sequences from another .prproj into this project."""
+        return self._p.eval_js(
+            snippet("import_sequences"),
+            {"project_path": str(project_path), "sequence_guids": sequence_guids},
+            timeout=600.0,
+        )
+
+    def import_ae_comps(
+        self,
+        aep_path: str,
+        comp_names: list[str] | None = None,
+        *,
+        bin: str | None = None,
+    ) -> dict[str, Any]:
+        """Import After Effects comps (all of them when ``comp_names`` is None)."""
+        return self._p.eval_js(
+            snippet("ae_import"),
+            {"aep_path": str(aep_path), "comp_names": comp_names, "bin": bin},
+            timeout=600.0,
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return dict(self._info)
+
+    def __repr__(self) -> str:
+        return f"<Project {self.name!r}>"
+
+
+class ProjectNamespace:
+    """``p.project`` — project operations mirroring ``dvr``'s namespace."""
+
+    def __init__(self, premiere: Premiere) -> None:
+        self._p = premiere
+
+    def list(self) -> list[dict[str, Any]]:
+        """List projects currently open in Premiere."""
+        return self._p.eval_js(snippet("project_list_open"))
+
+    @property
+    def current(self) -> Project | None:
+        """The active project, or None when nothing is open."""
+        try:
+            info = self._p.eval_js(snippet("project_inspect"))
+        except errors.HostJSError as exc:
+            if "No active project" in (exc.message or ""):
+                return None
+            raise
+        return Project(self._p, info)
+
+    def require_current(self) -> Project:
+        current = self.current
+        if current is None:
+            raise errors.ProjectError(
+                "No project is currently open in Premiere.",
+                fix="Open one with `prpr project ensure <name>` or `prpr project load <path>`.",
+            )
+        return current
+
+    def create(self, name: str) -> Project:
+        """Create a new project file and open it."""
+        path = _resolve_project_path(name)
+        if path.exists():
+            raise errors.ProjectError(
+                f"Project file already exists: {path}",
+                fix=f"Use `ensure` to open-or-create, or `load {path}`.",
+                state={"path": str(path)},
+            )
+        path.parent.mkdir(parents=True, exist_ok=True)
+        info = self._p.eval_js(snippet("project_create"), {"path": str(path)})
+        return Project(self._p, info)
+
+    def load(self, name: str) -> Project:
+        """Open an existing project file."""
+        path = _resolve_project_path(name)
+        if not path.exists():
+            raise errors.ProjectError(
+                f"Project file not found: {path}",
+                fix="Check the name/path, or use `ensure` to create it.",
+                state={"path": str(path), "projects_dir": str(projects_dir())},
+            )
+        info = self._p.eval_js(snippet("project_open"), {"path": str(path)}, timeout=300.0)
+        return Project(self._p, info)
+
+    def ensure(self, name: str) -> Project:
+        """Open the project if it exists, create it otherwise. Idempotent."""
+        path = _resolve_project_path(name)
+        current = self.current
+        if current is not None and current.path and Path(current.path) == path:
+            return current
+        if path.exists():
+            return self.load(name)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        info = self._p.eval_js(snippet("project_create"), {"path": str(path)})
+        return Project(self._p, info)
+
+    def save(self) -> dict[str, Any]:
+        return self.require_current().save()
+
+    def delete(self, name: str) -> dict[str, Any]:
+        """Delete a project *file* from disk. Refuses if it's currently open."""
+        path = _resolve_project_path(name)
+        current = self.current
+        if current is not None and current.path and Path(current.path) == path:
+            raise errors.ProjectError(
+                f"Project {path.name} is currently open in Premiere.",
+                fix="Close it first (`prpr project close`), then delete.",
+                state={"path": str(path)},
+            )
+        if not path.exists():
+            raise errors.ProjectError(f"Project file not found: {path}", state={"path": str(path)})
+        path.unlink()
+        return {"deleted": str(path)}
+
+
+__all__ = ["Project", "ProjectNamespace", "projects_dir"]

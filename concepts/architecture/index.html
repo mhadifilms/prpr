@@ -851,6 +851,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#is-a-plugin-really-required-yes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Is a plugin really required? (yes)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -981,6 +992,24 @@ agents can branch on error type and humans can read the fix.</p>
 page switching, interchange import) raise <code>NotSupportedError</code> — they still
 <em>exist</em> in the CLI/MCP surface for cross-app parity, but fail loudly with
 a pointer to the closest alternative. See <a href="../../parity/">parity</a>.</p>
+<h2 id="is-a-plugin-really-required-yes">Is a plugin really required? (yes)<a class="headerlink" href="#is-a-plugin-really-required-yes" title="Permanent link">&para;</a></h2>
+<p>DaVinci Resolve ships an external scripting API — an outside process
+imports <code>DaVinciResolveScript</code> and talks to a socket Resolve listens on.
+<strong>Premiere has no equivalent.</strong> Its only automation surface, UXP, runs
+<em>inside</em> the app, so something has to run in-process. The bridge panel is
+that something.</p>
+<p>The historical escape hatch — driving ExtendScript from outside via
+AppleScript <code>DoScript</code> (macOS) / BridgeTalk — <strong>has been removed in
+Premiere Pro 26</strong>. Its AppleScript dictionary now exposes only <code>capture</code>
+and <code>editoriginal</code>; <code>DoScript</code> is gone (verified on 26.5 beta and 2026
+release). ExtendScript itself is deprecated and being sunset. So on
+Premiere 26 there is <em>no</em> supported no-plugin path, and pmr's bridge is
+not merely the best option — it's the only one.</p>
+<p>The friction is a one-time dock: open <strong>Window → UXP Plugins → pmr
+bridge</strong> once. Premiere persists open UXP panels in the workspace and
+re-opens them every launch (the same way Adobe's own frame.io and
+importer panels stay open), and the panel auto-reconnects to the bridge.
+<code>pmr plugin autostart</code> confirms this is in place.</p>
 
 
 

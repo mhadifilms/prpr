@@ -161,6 +161,26 @@ class MediaNamespace:
     def bin_delete(self, path: str) -> dict[str, Any]:
         return self._p.eval_js(snippet("bin_delete"), {"path": path})
 
+    def bin_rename(self, path: str, new_name: str) -> dict[str, Any]:
+        """Rename a bin (identified by its current path)."""
+        return self._p.eval_js(snippet("bin_rename"), {"path": path, "new_name": new_name})
+
+    def smart_bin(self, name: str, query: str) -> dict[str, Any]:
+        """Create a smart bin at the project root with a search query."""
+        return self._p.eval_js(snippet("smart_bin_create"), {"name": name, "query": query})
+
+    def color_label(
+        self,
+        *,
+        name: str | None = None,
+        path: str | None = None,
+        set_index: int | None = None,
+    ) -> dict[str, Any]:
+        """Read (or set) a project item's color label index (0-14)."""
+        return self._p.eval_js(
+            snippet("color_label"), {"name": name, "path": path, "set_index": set_index}
+        )
+
     def move(
         self,
         target_bin: str,

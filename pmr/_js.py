@@ -530,6 +530,122 @@ SNIPPETS: dict[str, str] = {
         }
         return { added: args.name || "marker", seconds: Number(args.seconds || 0), sequence: seq.name };
     """),
+    "marker_move": _s("""
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        const markers = await ppro.Markers.getMarkers(seq);
+        let target = null;
+        project.lockedAccess(() => {
+          const list = markers.getMarkers() || [];
+          for (const m of list) {
+            try {
+              if (args.name ? m.getName() === args.name : Math.abs(m.getStart().seconds - Number(args.from_seconds)) < 0.001) {
+                target = m; break;
+              }
+            } catch (e) {}
+          }
+        });
+        if (!target) throw new Error("No matching marker to move");
+        runTransaction(project, "pmr: move marker", (add) => {
+          add(markers.createMoveMarkerAction(target, secondsToTick(args.to_seconds)));
+        });
+        return { moved: true, to_seconds: Number(args.to_seconds) };
+    """),
+    "work_area": _s("""
+        if (typeof ppro.WorkAreaUtils === "undefined") {
+          throw new Error("WorkAreaUtils unavailable in this Premiere version (needs 26.5+)");
+        }
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        if (args.in_seconds !== undefined && args.in_seconds !== null &&
+            args.out_seconds !== undefined && args.out_seconds !== null) {
+          await ppro.WorkAreaUtils.setWorkAreaInOutPoints(
+            seq, secondsToTick(args.in_seconds), secondsToTick(args.out_seconds));
+        } else if (args.in_seconds !== undefined && args.in_seconds !== null) {
+          await ppro.WorkAreaUtils.setWorkAreaInPoint(seq, secondsToTick(args.in_seconds));
+        } else if (args.out_seconds !== undefined && args.out_seconds !== null) {
+          await ppro.WorkAreaUtils.setWorkAreaOutPoint(seq, secondsToTick(args.out_seconds));
+        }
+        return {
+          in_point: tt(await ppro.WorkAreaUtils.getWorkAreaInPoint(seq)),
+          out_point: tt(await ppro.WorkAreaUtils.getWorkAreaOutPoint(seq)),
+        };
+    """),
+    "color_label": _s("""
+        const project = await activeProject();
+        const item = await findProjectItem(project, { name: args.name, path: args.path });
+        if (!item) throw new Error(`Project item not found: ${args.name || args.path}`);
+        if (args.set_index !== undefined && args.set_index !== null) {
+          runTransaction(project, "pmr: color label", (add) => {
+            add(item.createSetColorLabelAction(args.set_index));
+          });
+        }
+        return { name: item.name, color_label: await item.getColorLabelIndex() };
+    """),
+    "bin_rename": _s("""
+        const project = await activeProject();
+        const parts = String(args.path).split("/").filter(Boolean);
+        const folder = await findBin(project, args.path, false);
+        runTransaction(project, "pmr: rename bin", (add) => {
+          add(folder.createRenameBinAction(args.new_name));
+        });
+        return { renamed: parts[parts.length - 1], to: args.new_name };
+    """),
+    "smart_bin_create": _s("""
+        const project = await activeProject();
+        const root = await project.getRootItem();
+        runTransaction(project, "pmr: create smart bin", (add) => {
+          add(root.createSmartBinAction(args.name, args.query));
+        });
+        return { created: args.name, query: args.query };
+    """),
+    "keyframes_list": _s("""
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        const kind = args.kind || "video";
+        const tracks = await gatherTracks(project, seq, kind === "audio" ? "audio" : "video");
+        const perTrack = trackItemsSync(project, tracks, false);
+        let target = null;
+        for (let i = 0; i < perTrack.length; i++) {
+          if (args.track_index !== undefined && args.track_index !== null && i !== args.track_index) continue;
+          for (const item of perTrack[i]) {
+            let name = null;
+            try { name = await item.getName(); } catch (e) {}
+            if (args.clip_name && name !== args.clip_name) continue;
+            target = item; break;
+          }
+          if (target) break;
+        }
+        if (!target) throw new Error("Clip not found");
+        const chain = await target.getComponentChain();
+        let component = null;
+        let count = 0;
+        project.lockedAccess(() => { count = chain.getComponentCount(); });
+        for (let i = 0; i < count; i++) {
+          let cand = null;
+          project.lockedAccess(() => { cand = chain.getComponentAtIndex(i); });
+          let dn = null;
+          try { dn = await cand.getDisplayName(); } catch (e) {}
+          if (dn === args.component) { component = cand; break; }
+        }
+        if (!component) throw new Error(`Component not found: ${args.component}`);
+        let param = null;
+        project.lockedAccess(() => {
+          const pc = component.getParamCount();
+          for (let j = 0; j < pc; j++) {
+            const cand = component.getParam(j);
+            if (cand.displayName === args.param) { param = cand; break; }
+          }
+        });
+        if (!param) throw new Error(`Param not found: ${args.param}`);
+        const times = [];
+        project.lockedAccess(() => {
+          const list = param.getKeyframeListAsTickTimes() || [];
+          for (const t of list) times.push(tt(t));
+        });
+        return { component: args.component, param: args.param,
+                 time_varying: param.isTimeVarying(), keyframes: times };
+    """),
     "marker_remove": _s("""
         const project = await activeProject();
         const seq = await resolveSequence(project, args.sequence);

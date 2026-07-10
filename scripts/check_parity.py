@@ -47,6 +47,12 @@ NO_TOOL_EXPECTED = {
     "timeline.clone",
     "timeline.create_from_media",
     "timeline.selection",
+    "timeline.work_area",
+    "timeline.keyframes",
+    "media.color_label",
+    "media.bin_rename",
+    "media.smart_bin",
+    "marker.move",
     "media.proxy",  # library-level, per-clip
     "media.subclip",  # library-level
     "timeline.set_in_out",  # library-level

@@ -226,6 +226,47 @@ class Timeline:
             snippet("marker_remove"), {"sequence": self._ref, "name": name, "seconds": seconds}
         )
 
+    def move_marker(
+        self, to_seconds: float, *, name: str | None = None, from_seconds: float | None = None
+    ) -> dict[str, Any]:
+        """Move a marker (matched by name or current position) to a new time."""
+        return self._p.eval_js(
+            snippet("marker_move"),
+            {"sequence": self._ref, "name": name, "from_seconds": from_seconds,
+             "to_seconds": to_seconds},
+        )
+
+    def work_area(
+        self, in_seconds: float | None = None, out_seconds: float | None = None
+    ) -> dict[str, Any]:
+        """Read (or set) the sequence work area in/out points (26.5+)."""
+        return self._p.eval_js(
+            snippet("work_area"),
+            {"sequence": self._ref, "in_seconds": in_seconds, "out_seconds": out_seconds},
+        )
+
+    def keyframes(
+        self,
+        component: str,
+        param: str,
+        *,
+        clip_name: str | None = None,
+        track_index: int | None = None,
+        kind: str = "video",
+    ) -> dict[str, Any]:
+        """List keyframe times for a clip's component parameter."""
+        return self._p.eval_js(
+            snippet("keyframes_list"),
+            {
+                "sequence": self._ref,
+                "component": component,
+                "param": param,
+                "clip_name": clip_name,
+                "track_index": track_index,
+                "kind": kind,
+            },
+        )
+
     # -- editing -------------------------------------------------------
 
     def insert(

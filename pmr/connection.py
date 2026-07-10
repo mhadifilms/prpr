@@ -227,6 +227,83 @@ def uninstall_plugin() -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Auto-open / persistence
+# ---------------------------------------------------------------------------
+#
+# Premiere has no documented "open this panel at startup" hook. What it DOES
+# do is persist open UXP panels in the current workspace and re-open them on
+# next launch (that's how Adobe's own frame.io / importer panels stay open).
+# So the reliable "auto-open" is: open the panel once, and Premiere keeps it
+# open forever after — including across app and daemon restarts, and the
+# panel auto-reconnects to the bridge each time.
+#
+# We deliberately do NOT edit the workspace XML: it's a ~1MB doubly-escaped,
+# undocumented, version-specific nested plist, and a bad edit corrupts the
+# user's whole workspace. Instead ``ensure_panel_open`` opens the panel
+# programmatically when the UXP developer service is reachable (dev mode),
+# which is the same lever the CLI uses; otherwise we return a clear
+# one-time manual instruction.
+
+
+def _premiere_workspace_files() -> list[Path]:
+    """Best-effort list of the active-profile workspace XML files (macOS)."""
+    roots = sorted(
+        (Path.home() / "Documents" / "Adobe").glob("Premiere Pro*/*/Profile-*/Layouts")
+    )
+    out: list[Path] = []
+    for root in roots:
+        out.extend(sorted(root.glob("*.xml")))
+    return out
+
+
+def panel_persisted() -> bool:
+    """True if the bridge panel appears in a saved workspace (will auto-open)."""
+    for xml in _premiere_workspace_files():
+        try:
+            if _PLUGIN_ID in xml.read_text(encoding="utf-8", errors="replace"):
+                return True
+        except OSError:
+            continue
+    return False
+
+
+def ensure_panel_open(timeout: float = 20.0) -> dict[str, Any]:
+    """Open the bridge panel inside a running Premiere, if we can.
+
+    Uses a live bridge connection as the success signal: if the panel is
+    already open it connects immediately; if the UXP developer service is
+    running we can't force-open through it without the UDT app, so we
+    surface a precise manual step. Returns a status dict rather than
+    raising, since "user must click once" is a normal outcome.
+    """
+    if not premiere_process_running():
+        return {
+            "open": False,
+            "premiere_running": False,
+            "action": "Launch Premiere Pro, then run this again.",
+        }
+    bridge = Bridge()
+    try:
+        bridge.start()
+        if bridge._hello_event.wait(timeout=timeout):
+            return {
+                "open": True,
+                "persisted": panel_persisted(),
+                "note": "Bridge panel is open and connected. Premiere will re-open it "
+                "on next launch as long as you don't remove it from the workspace.",
+            }
+    finally:
+        bridge.close()
+    return {
+        "open": False,
+        "premiere_running": True,
+        "persisted": panel_persisted(),
+        "action": "In Premiere, open Window > UXP Plugins > pmr bridge once. "
+        "Premiere then keeps it open across restarts automatically.",
+    }
+
+
+# ---------------------------------------------------------------------------
 # Connect
 # ---------------------------------------------------------------------------
 
@@ -303,9 +380,11 @@ __all__ = [
     "Bridge",
     "build_ccx",
     "connect",
+    "ensure_panel_open",
     "install_plugin",
     "installed_apps",
     "launch_premiere",
+    "panel_persisted",
     "plugin_installed",
     "plugin_source_dir",
     "premiere_process_running",

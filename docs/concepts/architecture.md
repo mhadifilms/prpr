@@ -77,3 +77,25 @@ Operations Premiere's API simply cannot do (render-queue enumeration,
 page switching, interchange import) raise `NotSupportedError` — they still
 *exist* in the CLI/MCP surface for cross-app parity, but fail loudly with
 a pointer to the closest alternative. See [parity](../parity.md).
+
+## Is a plugin really required? (yes)
+
+DaVinci Resolve ships an external scripting API — an outside process
+imports `DaVinciResolveScript` and talks to a socket Resolve listens on.
+**Premiere has no equivalent.** Its only automation surface, UXP, runs
+*inside* the app, so something has to run in-process. The bridge panel is
+that something.
+
+The historical escape hatch — driving ExtendScript from outside via
+AppleScript `DoScript` (macOS) / BridgeTalk — **has been removed in
+Premiere Pro 26**. Its AppleScript dictionary now exposes only `capture`
+and `editoriginal`; `DoScript` is gone (verified on 26.5 beta and 2026
+release). ExtendScript itself is deprecated and being sunset. So on
+Premiere 26 there is *no* supported no-plugin path, and pmr's bridge is
+not merely the best option — it's the only one.
+
+The friction is a one-time dock: open **Window → UXP Plugins → pmr
+bridge** once. Premiere persists open UXP panels in the workspace and
+re-opens them every launch (the same way Adobe's own frame.io and
+importer panels stay open), and the panel auto-reconnects to the bridge.
+`pmr plugin autostart` confirms this is in place.

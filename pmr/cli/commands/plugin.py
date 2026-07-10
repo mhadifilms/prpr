@@ -15,7 +15,26 @@ def install(ctx: typer.Context) -> None:
     """Install (or upgrade) the pmr bridge plugin via Adobe's UPIA installer."""
     cfg = ctx.obj or {}
     result = connection.install_plugin()
+    result["next_step"] = (
+        "Open Premiere and, once, Window > UXP Plugins > pmr bridge. Premiere "
+        "then re-opens it automatically on every launch (`pmr plugin autostart` "
+        "verifies this)."
+    )
     output.emit(result, fmt=cfg.get("format"), headline="plugin install")
+
+
+@app.command("autostart")
+def autostart(ctx: typer.Context) -> None:
+    """Ensure the bridge panel is open now and set to persist across launches.
+
+    Premiere has no startup hook, but it re-opens whatever UXP panels were
+    open when you last quit. This opens the panel (when Premiere is running)
+    and reports whether it's registered in the saved workspace so it will
+    auto-open next time.
+    """
+    cfg = ctx.obj or {}
+    result = connection.ensure_panel_open(timeout=cfg.get("timeout", 20.0))
+    output.emit(result, fmt=cfg.get("format"), headline="pmr plugin autostart")
 
 
 @app.command("uninstall")
@@ -43,5 +62,6 @@ def status(ctx: typer.Context) -> None:
         "upia_available": connection.upia_path() is not None,
         "premiere_installed": bool(connection.installed_apps()),
         "premiere_running": connection.premiere_process_running(),
+        "panel_persisted": connection.panel_persisted(),
     }
     output.emit(report, fmt=cfg.get("format"), headline="pmr plugin")

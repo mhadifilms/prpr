@@ -26,9 +26,7 @@ def wired(monkeypatch):
     bridge = MockBridge(
         {
             "sequence_inspect": SEQUENCE_INSPECT,
-            "sequence_list": [
-                {"name": "Edit_v1", "guid": "abc", "fps": 24.0, "is_active": True}
-            ],
+            "sequence_list": [{"name": "Edit_v1", "guid": "abc", "fps": 24.0, "is_active": True}],
             "project_inspect": {
                 "name": "Test.prproj",
                 "path": "/x/Test.prproj",
@@ -55,9 +53,23 @@ def _run(args: list[str]):
 def test_help_lists_all_namespaces() -> None:
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    for ns in ("project", "timeline", "clip", "media", "render", "effects",
-               "metadata", "monitor", "plugin", "diff", "snapshot", "spec",
-               "schema", "serve", "mcp"):
+    for ns in (
+        "project",
+        "timeline",
+        "clip",
+        "media",
+        "render",
+        "effects",
+        "metadata",
+        "monitor",
+        "plugin",
+        "diff",
+        "snapshot",
+        "spec",
+        "schema",
+        "serve",
+        "mcp",
+    ):
         assert ns in result.output
 
 

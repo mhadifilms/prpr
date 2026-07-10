@@ -111,9 +111,7 @@ def frame(
         typer.Option("--timeline", help="Sequence to grab from (default: the active one)."),
     ] = None,
     width: Annotated[int, typer.Option("--width", help="Output width (0 = sequence size).")] = 0,
-    height: Annotated[
-        int, typer.Option("--height", help="Output height (0 = sequence size).")
-    ] = 0,
+    height: Annotated[int, typer.Option("--height", help="Output height (0 = sequence size).")] = 0,
 ) -> None:
     """Export a still frame from a sequence."""
     p = _premiere(ctx)

@@ -8,7 +8,7 @@ the bridge as seconds; frame math uses the sequence fps from
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Any
 
 from . import errors
@@ -73,16 +73,25 @@ class TimelineItem:
         return dict(self._detail)
 
     def rename(self, name: str) -> dict[str, Any]:
-        return self._timeline._clip_update(name=self.name, track_index=self.track_index,
-                                           track_type=self.track_type, set_name=name)
+        return self._timeline._clip_update(
+            name=self.name, track_index=self.track_index, track_type=self.track_type, set_name=name
+        )
 
     def enable(self) -> dict[str, Any]:
-        return self._timeline._clip_update(name=self.name, track_index=self.track_index,
-                                           track_type=self.track_type, set_disabled=False)
+        return self._timeline._clip_update(
+            name=self.name,
+            track_index=self.track_index,
+            track_type=self.track_type,
+            set_disabled=False,
+        )
 
     def disable(self) -> dict[str, Any]:
-        return self._timeline._clip_update(name=self.name, track_index=self.track_index,
-                                           track_type=self.track_type, set_disabled=True)
+        return self._timeline._clip_update(
+            name=self.name,
+            track_index=self.track_index,
+            track_type=self.track_type,
+            set_disabled=True,
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return self.inspect()
@@ -122,8 +131,9 @@ class ItemQuery:
 class Timeline:
     """A Premiere sequence, addressed by name/guid; state is read live."""
 
-    def __init__(self, premiere: Premiere, ref: str | None = None,
-                 info: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self, premiere: Premiere, ref: str | None = None, info: dict[str, Any] | None = None
+    ) -> None:
         self._p = premiere
         self._ref = ref  # None = active sequence
         self._info = info or {}
@@ -221,7 +231,9 @@ class Timeline:
             },
         )
 
-    def remove_marker(self, *, name: str | None = None, seconds: float | None = None) -> dict[str, Any]:
+    def remove_marker(
+        self, *, name: str | None = None, seconds: float | None = None
+    ) -> dict[str, Any]:
         return self._p.eval_js(
             snippet("marker_remove"), {"sequence": self._ref, "name": name, "seconds": seconds}
         )
@@ -232,8 +244,12 @@ class Timeline:
         """Move a marker (matched by name or current position) to a new time."""
         return self._p.eval_js(
             snippet("marker_move"),
-            {"sequence": self._ref, "name": name, "from_seconds": from_seconds,
-             "to_seconds": to_seconds},
+            {
+                "sequence": self._ref,
+                "name": name,
+                "from_seconds": from_seconds,
+                "to_seconds": to_seconds,
+            },
         )
 
     def work_area(
@@ -293,11 +309,23 @@ class Timeline:
             },
         )
 
-    def append(self, item_name: str | None = None, *, item_path: str | None = None,
-               video_track: int = 0, audio_track: int = 0) -> dict[str, Any]:
+    def append(
+        self,
+        item_name: str | None = None,
+        *,
+        item_path: str | None = None,
+        video_track: int = 0,
+        audio_track: int = 0,
+    ) -> dict[str, Any]:
         """Append a project item at the current end of the sequence."""
-        return self.insert(item_name, item_path=item_path, seconds=None,
-                           video_track=video_track, audio_track=audio_track, overwrite=True)
+        return self.insert(
+            item_name,
+            item_path=item_path,
+            seconds=None,
+            video_track=video_track,
+            audio_track=audio_track,
+            overwrite=True,
+        )
 
     def delete_clips(
         self,
@@ -532,7 +560,7 @@ class TimelineNamespace:
         return self._p.eval_js(snippet("sequence_delete"), {"sequence": name})
 
     def create_from_media(
-        self, name: str, items: list[str], *, bin: str | None = None
+        self, name: str, items: Sequence[str], *, bin: str | None = None
     ) -> Timeline:
         """Create a sequence pre-populated from project items (by name)."""
         info = self._p.eval_js(

@@ -27,20 +27,52 @@ def test_dvr_parity_tool_names_present(registry) -> None:
     names = {tool.name for tool in registry}
     # The shared-surface contract: these exact names exist in dvr's MCP too.
     shared = {
-        "version", "doctor", "reconnect", "schema", "ping", "inspect",
-        "page_get", "page_set",
-        "project_list", "project_ensure", "project_current", "project_save",
+        "version",
+        "doctor",
+        "reconnect",
+        "schema",
+        "ping",
+        "inspect",
+        "page_get",
+        "page_set",
+        "project_list",
+        "project_ensure",
+        "project_current",
+        "project_save",
         "project_delete",
-        "timeline_list", "timeline_inspect", "timeline_ensure",
-        "timeline_switch", "timeline_rename", "timeline_delete",
-        "timeline_clear", "timeline_append",
-        "marker_add", "clip_where",
-        "media_inspect", "media_bins", "media_ls", "media_import",
-        "media_scan", "media_bin_ensure", "media_bin_delete", "media_move",
-        "render_presets", "render_submit", "render_queue", "render_formats",
-        "render_codecs", "render_stop", "render_clear",
-        "diff_timelines", "diff_to_spec", "apply_spec", "spec_export",
-        "snapshot_save", "snapshot_list", "snapshot_restore", "lint",
+        "timeline_list",
+        "timeline_inspect",
+        "timeline_ensure",
+        "timeline_switch",
+        "timeline_rename",
+        "timeline_delete",
+        "timeline_clear",
+        "timeline_append",
+        "marker_add",
+        "clip_where",
+        "media_inspect",
+        "media_bins",
+        "media_ls",
+        "media_import",
+        "media_scan",
+        "media_bin_ensure",
+        "media_bin_delete",
+        "media_move",
+        "render_presets",
+        "render_submit",
+        "render_queue",
+        "render_formats",
+        "render_codecs",
+        "render_stop",
+        "render_clear",
+        "diff_timelines",
+        "diff_to_spec",
+        "apply_spec",
+        "spec_export",
+        "snapshot_save",
+        "snapshot_list",
+        "snapshot_restore",
+        "lint",
     }
     missing = shared - names
     assert not missing, f"dvr-parity tools missing: {sorted(missing)}"
@@ -92,8 +124,15 @@ def test_parity_matrix_agrees_with_registry() -> None:
 
     registry = build_registry()
     by_name = {tool.name: tool for tool in registry}
-    dvr_only_tools = ("render_queue", "render_formats", "render_codecs",
-                      "render_stop", "render_clear", "page_get", "page_set")
+    dvr_only_tools = (
+        "render_queue",
+        "render_formats",
+        "render_codecs",
+        "render_stop",
+        "render_clear",
+        "page_get",
+        "page_set",
+    )
     for name in dvr_only_tools:
         tool = by_name[name]
         with pytest.raises(errors.NotSupportedError):

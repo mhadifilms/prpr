@@ -39,9 +39,7 @@ _MAC_UPIA = (
     "UnifiedPluginInstallerAgent/UnifiedPluginInstallerAgent.app/Contents/MacOS/"
     "UnifiedPluginInstallerAgent"
 )
-_WIN_APP_GLOBS = (
-    r"C:\Program Files\Adobe\Adobe Premiere Pro *\Adobe Premiere Pro.exe",
-)
+_WIN_APP_GLOBS = (r"C:\Program Files\Adobe\Adobe Premiere Pro *\Adobe Premiere Pro.exe",)
 _WIN_UPIA = (
     r"C:\Program Files\Common Files\Adobe\Adobe Desktop Common\RemoteComponents\UPI"
     r"\UnifiedPluginInstallerAgent\UnifiedPluginInstallerAgent.exe"
@@ -165,7 +163,9 @@ def plugin_installed() -> dict[str, Any]:
     listed = False
     if upia:
         try:
-            result = subprocess.run([upia, "--list", "all"], capture_output=True, text=True, timeout=30)
+            result = subprocess.run(
+                [upia, "--list", "all"], capture_output=True, text=True, timeout=30
+            )
             listed = "pmr bridge" in (result.stdout or "")
         except Exception:
             listed = False

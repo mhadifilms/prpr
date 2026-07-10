@@ -26,6 +26,8 @@ jobs:
         run: ruff check pmr tests
       - name: Format check
         run: ruff format --check pmr tests
+      - name: Type check
+        run: mypy pmr
       - name: Tests
         run: pytest -m "not integration" -q
       - name: Plugin syntax check

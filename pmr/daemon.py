@@ -260,9 +260,7 @@ class _Server(_THREADING_UNIX_STREAM_SERVER):  # type: ignore[misc, valid-type, 
                 except errors.PmrError:
                     logger.warning("plugin connection lost; keeping server for reconnect")
                     raise
-            self._premiere = Premiere(
-                auto_launch=self._auto_launch, timeout=self._connect_timeout
-            )
+            self._premiere = Premiere(auto_launch=self._auto_launch, timeout=self._connect_timeout)
             return self._premiere
 
     def invalidate_premiere(self) -> None:
@@ -296,9 +294,7 @@ def serve(*, auto_launch: bool = True, timeout: float = 60.0) -> None:
 
     try:
         premiere = server.get_premiere()
-        logger.info(
-            "Premiere %s connected; daemon listening on %s", premiere.app.version, sock
-        )
+        logger.info("Premiere %s connected; daemon listening on %s", premiere.app.version, sock)
     except errors.PmrError as exc:
         logger.warning(
             "could not connect to Premiere at startup; will retry on first request: %s", exc

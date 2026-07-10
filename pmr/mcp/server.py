@@ -591,9 +591,7 @@ def _h_media_attach_proxy(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]
 
 
 def _h_media_transcribe(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
-    return ctx.premiere().media.transcript_export(
-        name=args.get("name"), path=args.get("path")
-    )
+    return ctx.premiere().media.transcript_export(name=args.get("name"), path=args.get("path"))
 
 
 # ---------------------------------------------------------------------------
@@ -1247,8 +1245,7 @@ def build_registry() -> list[_ToolSpec]:
         _ToolSpec(
             name="marker_remove",
             description=(
-                "Remove the first marker matching name and/or time (seconds) from a "
-                "sequence."
+                "Remove the first marker matching name and/or time (seconds) from a sequence."
             ),
             schema=_schema(
                 {
@@ -1678,8 +1675,7 @@ def build_registry() -> list[_ToolSpec]:
         _ToolSpec(
             name="media_attach_proxy",
             description=(
-                "Attach a proxy (or hi-res alternate with is_hi_res=true) to a "
-                "clip. Not undoable."
+                "Attach a proxy (or hi-res alternate with is_hi_res=true) to a clip. Not undoable."
             ),
             schema=_schema(
                 {
@@ -1845,8 +1841,7 @@ def build_registry() -> list[_ToolSpec]:
             ),
             handler=_not_supported(
                 "Premiere's UXP API cannot cancel a running export programmatically.",
-                fix="Cancel from Premiere/AME's UI; watch for the cancel event with "
-                "render_watch.",
+                fix="Cancel from Premiere/AME's UI; watch for the cancel event with render_watch.",
             ),
             needs_premiere=False,
         ),

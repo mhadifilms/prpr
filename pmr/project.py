@@ -196,9 +196,7 @@ class ProjectNamespace:
                 state={"path": str(path)},
             )
         if not path.exists():
-            raise errors.ProjectError(
-                f"Project file not found: {path}", state={"path": str(path)}
-            )
+            raise errors.ProjectError(f"Project file not found: {path}", state={"path": str(path)})
         path.unlink()
         return {"deleted": str(path)}
 

@@ -128,7 +128,9 @@ def delete(name: str) -> None:
 
 def restore(premiere: Premiere, snapshot: Snapshot, *, dry_run: bool = False) -> dict[str, Any]:
     """Best-effort re-apply: recreate missing sequences, re-add missing markers."""
-    counts = {"timelines_created": 0, "markers_added": 0, "skipped": []}
+    timelines_created = 0
+    markers_added = 0
+    skipped: list[dict[str, Any]] = []
     existing = {entry.get("name") for entry in premiere.timeline.list()}
 
     for timeline_data in snapshot.data.get("timelines", []):
@@ -138,8 +140,8 @@ def restore(premiere: Premiere, snapshot: Snapshot, *, dry_run: bool = False) ->
         if timeline_name not in existing:
             if not dry_run:
                 premiere.timeline.ensure(timeline_name)
-            counts["timelines_created"] += 1
-            counts["skipped"].append(
+            timelines_created += 1
+            skipped.append(
                 {
                     "timeline": timeline_name,
                     "reason": "clips cannot be restored from a snapshot; sequence recreated empty",
@@ -163,10 +165,14 @@ def restore(premiere: Premiere, snapshot: Snapshot, *, dry_run: bool = False) ->
                     duration_seconds=(marker.get("duration") or {}).get("seconds"),
                     color_index=marker.get("color_index"),
                 )
-            counts["markers_added"] += 1
+            markers_added += 1
 
-    counts["dry_run"] = dry_run
-    return counts
+    return {
+        "timelines_created": timelines_created,
+        "markers_added": markers_added,
+        "skipped": skipped,
+        "dry_run": dry_run,
+    }
 
 
 __all__ = [

@@ -67,8 +67,9 @@ def main(argv: list[str]) -> int:
     _stage("effects + transform + keyframes")
     p.effects.apply("PR.ADBE Gamma Correction", clip_name=clips[0].name, timeline="Smoke_v1")
     p.effects.set_param("Motion", "Scale", 80, clip_name=clips[0].name, timeline="Smoke_v1")
-    p.effects.set_param("Opacity", "Opacity", 0, clip_name=clips[0].name, timeline="Smoke_v1",
-                        at_seconds=1.0)
+    p.effects.set_param(
+        "Opacity", "Opacity", 0, clip_name=clips[0].name, timeline="Smoke_v1", at_seconds=1.0
+    )
     print("  gamma + scale=80 + opacity keyframe applied")
 
     _stage("still frame export")
@@ -89,8 +90,13 @@ def main(argv: list[str]) -> int:
     _stage("sequence export (EncoderManager)")
     presets = p.render.presets()
     if presets:
-        job = p.render.submit(target_dir=str(workdir / "out"), preset=presets[0]["path"],
-                              timeline="Smoke_v1", wait=True, timeout=600)
+        job = p.render.submit(
+            target_dir=str(workdir / "out"),
+            preset=presets[0]["path"],
+            timeline="Smoke_v1",
+            wait=True,
+            timeout=600,
+        )
         print("  exported ->", job.output_path, "exists", Path(job.output_path or "").exists())
     else:
         print("  (no .epr presets found; skipping sequence export)")

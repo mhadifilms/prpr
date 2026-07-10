@@ -183,10 +183,7 @@ class RenderNamespace:
     def _ensure_subscribed(self) -> None:
         if self._subscribed:
             return
-        code = (
-            "const manager = ppro.EncoderManager.getManager();\n"
-            "return H.ref(manager);"
-        )
+        code = "const manager = ppro.EncoderManager.getManager();\nreturn H.ref(manager);"
         manager = self._p.eval_js(code)
         for constant in _EVENT_CONSTANTS.values():
             event_name = self._p.bridge.get("ppro", f"EncoderManager.{constant}")

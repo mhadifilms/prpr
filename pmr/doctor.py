@@ -27,7 +27,9 @@ def _port_status(port: int) -> str:
             return "in-use"
 
 
-def diagnose(probe: bool = False, auto_launch: bool = False, timeout: float = 15.0) -> dict[str, Any]:
+def diagnose(
+    probe: bool = False, auto_launch: bool = False, timeout: float = 15.0
+) -> dict[str, Any]:
     """Return a diagnostic dict describing this machine's pmr setup."""
     from . import __version__
 

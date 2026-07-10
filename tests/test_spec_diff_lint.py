@@ -14,9 +14,7 @@ from pmr.spec import Spec, load_spec
 class TestSpecParsing:
     def test_load_yaml(self, tmp_path: Path) -> None:
         file = tmp_path / "spec.yaml"
-        file.write_text(
-            "project: Show\nbins:\n  - Footage\ntimelines:\n  - name: Edit_v1\n"
-        )
+        file.write_text("project: Show\nbins:\n  - Footage\ntimelines:\n  - name: Edit_v1\n")
         spec = load_spec(str(file))
         assert spec.project == "Show"
         assert spec.bins == ["Footage"]

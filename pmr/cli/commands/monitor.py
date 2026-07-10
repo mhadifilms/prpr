@@ -33,6 +33,7 @@ def open_cmd(
     if item is not None:
         result = p.eval_js(snippet("source_monitor"), {"op": "open_item", "name": item})
     else:
+        assert path is not None  # guarded by the XOR check above
         resolved = str(Path(path).expanduser().resolve())
         result = p.eval_js(snippet("source_monitor"), {"op": "open_path", "path": resolved})
     output.emit(result, fmt=ctx.obj["format"])

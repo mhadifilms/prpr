@@ -43,9 +43,7 @@ def list_effects(
 @app.command("apply")
 def apply_effect(
     ctx: typer.Context,
-    name: Annotated[
-        str, typer.Argument(help="Effect matchName (video) or display name (audio).")
-    ],
+    name: Annotated[str, typer.Argument(help="Effect matchName (video) or display name (audio).")],
     clip: _ClipOpt = None,
     track_index: _TrackIndexOpt = None,
     kind: Annotated[str, typer.Option("--kind", help="Effect kind: video | audio.")] = "video",
@@ -151,7 +149,13 @@ def param_cmd(
         except ValueError:
             coerced = value
     result = p.effects.set_param(
-        component, param, coerced,
-        timeline=timeline, clip_name=clip, track_index=track_index, kind=kind, at_seconds=at,
+        component,
+        param,
+        coerced,
+        timeline=timeline,
+        clip_name=clip,
+        track_index=track_index,
+        kind=kind,
+        at_seconds=at,
     )
     output.emit(result, fmt=ctx.obj["format"])

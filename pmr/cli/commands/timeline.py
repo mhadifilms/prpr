@@ -168,9 +168,7 @@ def append(
             overwrite=not insert,
         )
     else:
-        result = tl.append(
-            item, item_path=path, video_track=video_track, audio_track=audio_track
-        )
+        result = tl.append(item, item_path=path, video_track=video_track, audio_track=audio_track)
     output.emit(result, fmt=ctx.obj["format"])
 
 
@@ -218,7 +216,9 @@ def mark(
     ] = "Comment",
     color_index: Annotated[
         int | None,
-        typer.Option("--color-index", help="Color index 0-6 (see `pmr schema show marker-colors`)."),
+        typer.Option(
+            "--color-index", help="Color index 0-6 (see `pmr schema show marker-colors`)."
+        ),
     ] = None,
     duration: Annotated[
         float | None, typer.Option("--duration", help="Marker duration in seconds.")
@@ -269,7 +269,9 @@ def export(
     file: Annotated[str, typer.Argument(help="Output path (.xml | .otio | .aaf).")],
     format: Annotated[
         str | None,
-        typer.Option("--format", help="Interchange format: fcpxml | otio | aaf (default: by extension)."),
+        typer.Option(
+            "--format", help="Interchange format: fcpxml | otio | aaf (default: by extension)."
+        ),
     ] = None,
     timeline: Annotated[
         str | None,

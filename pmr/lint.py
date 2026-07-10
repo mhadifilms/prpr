@@ -56,7 +56,7 @@ def lint(premiere: Premiere) -> Report:
                 walk(item.get("children", []))
                 continue
             if item.get("offline"):
-                offline.append(item.get("name"))
+                offline.append(str(item.get("name") or "?"))
             path = item.get("path") or ""
             if path.startswith(("/tmp", "/var/folders", "/private/tmp", "/private/var")):
                 temp_media.append(path)
@@ -92,9 +92,7 @@ def lint(premiere: Premiere) -> Report:
             for track in data.get("tracks", {}).get(kind, [])
         )
         if total_clips == 0:
-            report.warnings.append(
-                _entry("timeline", f"Sequence {entry.get('name')!r} is empty.")
-            )
+            report.warnings.append(_entry("timeline", f"Sequence {entry.get('name')!r} is empty."))
 
     return report
 

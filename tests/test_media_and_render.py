@@ -60,9 +60,13 @@ class TestBins:
                     "kind": "bin",
                     "name": "Footage",
                     "children": [
-                        {"kind": "bin", "name": "Day1", "children": [
-                            {"kind": "clip", "name": "a.mov", "path": "/x/a.mov"},
-                        ]},
+                        {
+                            "kind": "bin",
+                            "name": "Day1",
+                            "children": [
+                                {"kind": "clip", "name": "a.mov", "path": "/x/a.mov"},
+                            ],
+                        },
                     ],
                 },
             ],

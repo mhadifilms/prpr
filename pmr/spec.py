@@ -172,9 +172,10 @@ def plan(spec: Spec, premiere: Premiere) -> list[Action]:
                     existing_bins.add(bin_path)
                     walk(item.get("children", []), bin_path)
                 else:
-                    existing_names.add(item.get("name"))
+                    if item.get("name"):
+                        existing_names.add(str(item["name"]))
                     if item.get("path"):
-                        existing_paths.add(item["path"])
+                        existing_paths.add(str(item["path"]))
 
         walk(tree.get("items", []), "")
 
@@ -186,11 +187,9 @@ def plan(spec: Spec, premiere: Premiere) -> list[Action]:
             if path not in existing_paths:
                 actions.append(Action("import", "media", path))
 
-        existing_timelines = (
-            {t.get("name") for t in premiere.timeline.list()} if current else set()
-        )
+        existing_timelines = {t.get("name") for t in premiere.timeline.list()} if current else set()
         for timeline_spec in spec.timelines:
-            name = timeline_spec.get("name")
+            name = str(timeline_spec.get("name") or "")
             if name not in existing_timelines:
                 actions.append(Action("create", "timeline", name))
                 for clip in timeline_spec.get("clips", []):
@@ -258,8 +257,7 @@ def apply(
             if clip not in live_clips:
                 timeline.append(clip)
         live_markers = {
-            (m.get("name"), (m.get("start") or {}).get("seconds"))
-            for m in timeline.markers()
+            (m.get("name"), (m.get("start") or {}).get("seconds")) for m in timeline.markers()
         }
         for marker in timeline_spec.get("markers", []):
             key = (marker.get("name"), marker.get("seconds"))

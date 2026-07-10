@@ -132,7 +132,6 @@ ignore_missing_imports = true
 # in those modules — the boundary is the whole point.
 [[tool.mypy.overrides]]
 module = [
-    "pmr.audio",
     "pmr.bridge",
     "pmr.connection",
     "pmr.daemon",

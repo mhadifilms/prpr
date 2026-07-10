@@ -19,15 +19,50 @@ if TYPE_CHECKING:
     from .premiere import Premiere
 
 VIDEO_EXTENSIONS = {
-    ".mov", ".mp4", ".m4v", ".mxf", ".avi", ".mkv", ".webm", ".r3d", ".braw",
-    ".ari", ".dng", ".prores", ".mts", ".m2ts", ".wmv", ".flv", ".3gp",
+    ".mov",
+    ".mp4",
+    ".m4v",
+    ".mxf",
+    ".avi",
+    ".mkv",
+    ".webm",
+    ".r3d",
+    ".braw",
+    ".ari",
+    ".dng",
+    ".prores",
+    ".mts",
+    ".m2ts",
+    ".wmv",
+    ".flv",
+    ".3gp",
 }
 AUDIO_EXTENSIONS = {
-    ".wav", ".aif", ".aiff", ".mp3", ".m4a", ".flac", ".ogg", ".caf", ".bwf",
+    ".wav",
+    ".aif",
+    ".aiff",
+    ".mp3",
+    ".m4a",
+    ".flac",
+    ".ogg",
+    ".caf",
+    ".bwf",
 }
 IMAGE_EXTENSIONS = {
-    ".png", ".jpg", ".jpeg", ".tif", ".tiff", ".exr", ".dpx", ".tga", ".psd",
-    ".ai", ".bmp", ".gif", ".heic", ".webp",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".tif",
+    ".tiff",
+    ".exr",
+    ".dpx",
+    ".tga",
+    ".psd",
+    ".ai",
+    ".bmp",
+    ".gif",
+    ".heic",
+    ".webp",
 }
 
 
@@ -143,7 +178,9 @@ class MediaNamespace:
             return {"imported": 0, "existing": existing}
         return self.import_([resolved], bin=bin)
 
-    def find_clip(self, *, name: str | None = None, path: str | None = None) -> dict[str, Any] | None:
+    def find_clip(
+        self, *, name: str | None = None, path: str | None = None
+    ) -> dict[str, Any] | None:
         """Find a clip in the project panel by name or media path."""
         from . import errors
 
@@ -204,17 +241,27 @@ class MediaNamespace:
         return scan_media_files(path, **kwargs)
 
     def attach_proxy(
-        self, proxy_path: str, *, name: str | None = None, path: str | None = None,
+        self,
+        proxy_path: str,
+        *,
+        name: str | None = None,
+        path: str | None = None,
         is_hi_res: bool = False,
     ) -> dict[str, Any]:
         """Attach a proxy (or hi-res alternate) to a clip. Not undoable."""
         return self._p.eval_js(
             snippet("proxy_attach"),
-            {"name": name, "path": path, "proxy_path": str(Path(proxy_path).expanduser()),
-             "is_hi_res": is_hi_res},
+            {
+                "name": name,
+                "path": path,
+                "proxy_path": str(Path(proxy_path).expanduser()),
+                "is_hi_res": is_hi_res,
+            },
         )
 
-    def transcript_export(self, *, name: str | None = None, path: str | None = None) -> dict[str, Any]:
+    def transcript_export(
+        self, *, name: str | None = None, path: str | None = None
+    ) -> dict[str, Any]:
         """Export a clip's speech-to-text transcript as JSON (26.3+)."""
         return self._p.eval_js(snippet("transcript_export"), {"name": name, "path": path})
 

@@ -880,6 +880,73 @@ SNIPPETS: dict[str, str] = {
         }
         return { clip: args.clip_name || null, components: out };
     """),
+    "param_set": _s("""
+        // Set a component parameter value (optionally keyframed at a time).
+        // args: sequence, clip_name, track_index, kind, component (match or display name),
+        //       param (display name or index), value (number|bool|string|[x,y]|{r,g,b,a}),
+        //       at_seconds (optional -> keyframe), interpolation (optional)
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        const kind = args.kind || "video";
+        const tracks = await gatherTracks(project, seq, kind === "audio" ? "audio" : "video");
+        const perTrack = trackItemsSync(project, tracks, false);
+        let target = null;
+        for (let i = 0; i < perTrack.length; i++) {
+          if (args.track_index !== undefined && args.track_index !== null && i !== args.track_index) continue;
+          for (const item of perTrack[i]) {
+            let name = null;
+            try { name = await item.getName(); } catch (e) {}
+            if (args.clip_name && name !== args.clip_name) continue;
+            target = item;
+            break;
+          }
+          if (target) break;
+        }
+        if (!target) throw new Error("Clip not found");
+        const chain = await target.getComponentChain();
+        let count = 0;
+        project.lockedAccess(() => { count = chain.getComponentCount(); });
+        let component = null;
+        for (let i = 0; i < count; i++) {
+          let candidate = null;
+          project.lockedAccess(() => { candidate = chain.getComponentAtIndex(i); });
+          let dn = null, mn = null;
+          try { dn = await candidate.getDisplayName(); } catch (e) {}
+          try { mn = await candidate.getMatchName(); } catch (e) {}
+          if (dn === args.component || mn === args.component) { component = candidate; break; }
+        }
+        if (!component) throw new Error(`Component not found: ${args.component}`);
+        let param = null;
+        project.lockedAccess(() => {
+          const paramCount = component.getParamCount();
+          for (let j = 0; j < paramCount; j++) {
+            const candidate = component.getParam(j);
+            if (typeof args.param === "number" ? j === args.param : candidate.displayName === args.param) {
+              param = candidate;
+              break;
+            }
+          }
+        });
+        if (!param) throw new Error(`Param not found: ${args.param}`);
+        let value = args.value;
+        if (Array.isArray(value) && value.length === 2) {
+          value = new ppro.PointF(Number(value[0]), Number(value[1]));
+        } else if (value && typeof value === "object" && "r" in value) {
+          value = new ppro.Color(value.r, value.g, value.b, value.a === undefined ? 255 : value.a);
+        }
+        const keyframe = param.createKeyframe(value);
+        runTransaction(project, "pmr: set param", (add) => {
+          if (args.at_seconds !== undefined && args.at_seconds !== null) {
+            add(param.createSetTimeVaryingAction(true));
+            keyframe.position = secondsToTick(args.at_seconds);
+            add(param.createAddKeyframeAction(keyframe));
+          } else {
+            add(param.createSetValueAction(keyframe, true));
+          }
+        });
+        return { set: args.param, component: args.component, value: args.value,
+                 keyframed: args.at_seconds !== undefined && args.at_seconds !== null };
+    """),
     # ------------------------------------------------------------------
     # Export / render
     # ------------------------------------------------------------------

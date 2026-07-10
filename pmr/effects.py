@@ -71,6 +71,35 @@ class EffectsNamespace:
             },
         )
 
+    def set_param(
+        self,
+        component: str,
+        param: str | int,
+        value: Any,
+        *,
+        timeline: str | None = None,
+        clip_name: str | None = None,
+        track_index: int | None = None,
+        kind: str = "video",
+        at_seconds: float | None = None,
+    ) -> dict[str, Any]:
+        """Set a component parameter (e.g. Motion/Scale). Keyframes when
+        ``at_seconds`` is given; values: number, bool, string, [x, y], or
+        ``{"r": .., "g": .., "b": .., "a": ..}``."""
+        return self._p.eval_js(
+            snippet("param_set"),
+            {
+                "sequence": timeline,
+                "clip_name": clip_name,
+                "track_index": track_index,
+                "kind": kind,
+                "component": component,
+                "param": param,
+                "value": value,
+                "at_seconds": at_seconds,
+            },
+        )
+
     def components(
         self,
         *,

@@ -66,13 +66,21 @@ def diagnose(
         try:
             bridge = connection.connect(auto_launch=auto_launch, timeout=timeout)
             hello = bridge.hello or {}
+            fresh = connection.plugin_freshness(hello.get("plugin"))
             result["probe"] = {
                 "connected": True,
                 "host": hello.get("host"),
                 "plugin_version": hello.get("plugin"),
+                "bundled_plugin_version": fresh["bundled"],
+                "plugin_up_to_date": not fresh["stale"],
                 "port": bridge.port,
             }
             bridge.close()
+            if fresh["stale"]:
+                problems.append(
+                    f"Bridge plugin is v{fresh['connected']} but pmr ships v{fresh['bundled']}."
+                )
+                fixes.append("Run `pmr plugin install` and restart Premiere to update the bridge.")
         except errors.PmrError as exc:
             result["probe"] = {"connected": False, "error": exc.to_dict()}
             problems.append("Live probe failed: " + exc.message)

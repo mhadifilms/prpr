@@ -18,6 +18,8 @@ completes almost instantly.
 from __future__ import annotations
 
 import glob
+import json
+import logging
 import os
 import plistlib
 import shutil
@@ -31,6 +33,8 @@ from typing import Any
 
 from . import errors
 from .bridge import Bridge
+
+logger = logging.getLogger("pmr.connection")
 
 _MAC_APP_GLOBS = (
     "/Applications/Adobe Premiere Pro */Adobe Premiere Pro *.app",
@@ -264,13 +268,22 @@ def bridge_reachable(timeout: float = 20.0) -> dict[str, Any]:
         bridge.start()
         if bridge._hello_event.wait(timeout=timeout):
             hello = bridge.hello or {}
-            return {
+            fresh = plugin_freshness(hello.get("plugin"))
+            result = {
                 "connected": True,
                 "plugin": hello.get("plugin"),
+                "bundled_plugin": fresh["bundled"],
+                "up_to_date": not fresh["stale"],
                 "host": hello.get("host"),
                 "note": "Headless bridge is running. It starts automatically with "
                 "Premiere and reconnects on its own.",
             }
+            if fresh["stale"]:
+                result["note"] = (
+                    f"Bridge is v{fresh['connected']} but pmr ships v{fresh['bundled']}. "
+                    "Run `pmr plugin install` and restart Premiere to update."
+                )
+            return result
     finally:
         bridge.close()
     return {
@@ -280,6 +293,80 @@ def bridge_reachable(timeout: float = 20.0) -> dict[str, Any]:
         "action": "Restart Premiere Pro so it loads the installed bridge plugin. "
         "If it still doesn't connect, run `pmr doctor --probe`.",
     }
+
+
+# ---------------------------------------------------------------------------
+# Plugin freshness / auto-update
+# ---------------------------------------------------------------------------
+#
+# The plugin ships inside the pip package (its version is in the bundled
+# manifest). When you `pip install -U pmr`, the bundled plugin can be newer
+# than the copy UPIA-installed into Premiere. On connect we compare the two
+# and, by default, UPIA-reinstall the newer bundle so the *next* Premiere
+# launch runs the current bridge. (A running UXP plugin can't be hot-swapped,
+# so the refresh takes effect on restart — we log that clearly.) Opt out with
+# ``PMR_PLUGIN_AUTOUPDATE=0``.
+
+_plugin_refresh_attempted = False
+
+
+def bundled_plugin_version() -> str | None:
+    """Version string from the bundled plugin manifest, or None."""
+    try:
+        data = json.loads((plugin_source_dir() / "manifest.json").read_text())
+        version = data.get("version")
+        return str(version) if version else None
+    except Exception:
+        return None
+
+
+def _version_tuple(value: str | None) -> tuple[int, ...]:
+    parts: list[int] = []
+    for chunk in str(value or "").split("."):
+        digits = "".join(ch for ch in chunk if ch.isdigit())
+        parts.append(int(digits) if digits else 0)
+    return tuple(parts) or (0,)
+
+
+def plugin_freshness(connected_version: str | None) -> dict[str, Any]:
+    """Compare the connected plugin version to the bundled one."""
+    bundled = bundled_plugin_version()
+    stale = bool(
+        bundled
+        and connected_version
+        and _version_tuple(connected_version) < _version_tuple(bundled)
+    )
+    return {"bundled": bundled, "connected": connected_version, "stale": stale}
+
+
+def _maybe_refresh_plugin(bridge: Bridge) -> None:
+    """UPIA-reinstall the bundled plugin if the connected one is older."""
+    global _plugin_refresh_attempted
+    if _plugin_refresh_attempted:
+        return
+    if os.environ.get("PMR_PLUGIN_AUTOUPDATE", "1").strip().lower() in ("0", "false", "no"):
+        return
+    fresh = plugin_freshness((bridge.hello or {}).get("plugin"))
+    if not fresh["stale"]:
+        return
+    _plugin_refresh_attempted = True
+    if upia_path() is None:
+        logger.warning(
+            "bridge plugin in Premiere is v%s but pmr ships v%s; run `pmr plugin install` to update",
+            fresh["connected"],
+            fresh["bundled"],
+        )
+        return
+    try:
+        install_plugin()
+        logger.warning(
+            "Updated the bridge plugin to v%s — restart Premiere Pro to load it "
+            "(it is still running v%s this session).",
+            fresh["bundled"],
+            fresh["connected"],
+        )
+    except errors.PmrError as exc:
+        logger.warning("could not auto-update the bridge plugin: %s", exc)
 
 
 # ---------------------------------------------------------------------------
@@ -296,6 +383,7 @@ def connect(auto_launch: bool = True, timeout: float = 30.0) -> Bridge:
     # Fast path: plugin is already cycling its reconnect loop.
     deadline = time.monotonic() + timeout
     if bridge._hello_event.wait(timeout=min(4.0, timeout)):
+        _maybe_refresh_plugin(bridge)
         return bridge
 
     running = premiere_process_running()
@@ -313,6 +401,7 @@ def connect(auto_launch: bool = True, timeout: float = 30.0) -> Bridge:
     remaining = max(1.0, deadline - time.monotonic())
     try:
         bridge.wait_for_plugin(timeout=remaining)
+        _maybe_refresh_plugin(bridge)
     except errors.PluginNotConnectedError as exc:
         status = plugin_installed()
         exc.state.update(
@@ -359,10 +448,12 @@ __all__ = [
     "Bridge",
     "bridge_reachable",
     "build_ccx",
+    "bundled_plugin_version",
     "connect",
     "install_plugin",
     "installed_apps",
     "launch_premiere",
+    "plugin_freshness",
     "plugin_installed",
     "plugin_source_dir",
     "premiere_process_running",

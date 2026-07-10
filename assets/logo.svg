@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="pmr">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9a5cff"/>
+      <stop offset="1" stop-color="#5b2fb3"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="128" height="128" rx="28" fill="url(#g)"/>
+  <!-- stylized play/timeline mark -->
+  <rect x="30" y="42" width="80" height="10" rx="5" fill="#fff" opacity="0.35"/>
+  <rect x="30" y="65" width="80" height="10" rx="5" fill="#fff" opacity="0.35"/>
+  <rect x="30" y="88" width="80" height="10" rx="5" fill="#fff" opacity="0.35"/>
+  <path d="M62 54 L86 70 L62 86 Z" fill="#fff"/>
+  <text x="70" y="128" font-family="-apple-system, Segoe UI, sans-serif" font-size="20" font-weight="700" fill="#fff" text-anchor="middle" opacity="0">pmr</text>
+</svg>

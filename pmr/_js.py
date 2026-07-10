@@ -1396,24 +1396,14 @@ SNIPPETS: dict[str, str] = {
           await seq.clearSelection();
           return { cleared: true };
         }
-        const tracks = await gatherTracks(project, seq, args.track_type || "video");
-        const perTrack = trackItemsSync(project, tracks, false);
-        const matched = [];
-        for (let i = 0; i < perTrack.length; i++) {
-          if (args.track_index !== undefined && args.track_index !== null && i !== args.track_index) continue;
-          for (const item of perTrack[i]) {
-            let name = null;
-            try { name = await item.getName(); } catch (e) {}
-            if (args.name && name !== args.name) continue;
-            if (args.name_contains && (!name || !name.includes(args.name_contains))) continue;
-            matched.push(item);
-          }
-        }
-        let selection = null;
-        ppro.TrackItemSelection.createEmptySelection((sel) => { selection = sel; });
-        for (const item of matched) selection.addItem(item, true);
-        await seq.setSelection(selection);
-        return { selected: matched.length };
+        // NOTE: Sequence.setSelection() hard-crashes Premiere 26.5 beta when
+        // given a freshly built TrackItemSelection. Until Adobe fixes it we
+        // refuse to call it rather than take the host down with us.
+        throw new Error(
+          "Sequence.setSelection is disabled: it crashes Premiere 26.5 beta. " +
+          "Use timeline.selection() to read the current selection or " +
+          "timeline.select(clear=True) to clear it."
+        );
     """),
     "purge_cache": _s("""
         if (typeof ppro.MediaManager === "undefined" || typeof ppro.MediaManager.purgeMediaCache !== "function") {

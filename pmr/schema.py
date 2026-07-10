@@ -115,7 +115,7 @@ PARITY: dict[str, dict[str, Any]] = {
     "timeline.subsequence": {"status": "pmr-only", "reason": "Sequence.createSubsequence"},
     "timeline.clone": {"status": "both", "note": "pmr: createCloneAction"},
     "timeline.create_from_media": {"status": "pmr-only", "reason": "Project.createSequenceFromMedia"},
-    "timeline.selection": {"status": "pmr-only", "reason": "TrackItemSelection APIs; setSelection crashes 26.5 beta — read/clear only"},
+    "timeline.selection": {"status": "pmr-only", "reason": "read + clear only; setSelection crashes 26.5 beta and is refused"},
     "render.submit": {"status": "both", "note": "pmr: .epr presets via EncoderManager"},
     "render.presets": {"status": "both", "note": "pmr discovers .epr files on disk"},
     "render.status": {"status": "both", "note": "pmr: event-driven, no job ids"},

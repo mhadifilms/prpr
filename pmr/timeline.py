@@ -380,16 +380,28 @@ class Timeline:
         track_index: int | None = None,
         clear: bool = False,
     ) -> dict[str, Any]:
-        """Set (or clear) the sequence selection by clip filters."""
+        """Clear the sequence selection (``clear=True``).
+
+        Setting a selection by filters is currently unavailable: Premiere
+        26.5 beta crashes on ``Sequence.setSelection``. Only ``clear=True``
+        is honored; anything else raises :class:`NotSupportedError` until
+        Adobe fixes the host crash.
+        """
+        if not clear:
+            raise errors.NotSupportedError(
+                "Setting a timeline selection crashes Premiere 26.5 beta.",
+                cause="Sequence.setSelection() takes the host down on this build.",
+                fix="Use timeline.select(clear=True) to clear, or timeline.selection() "
+                "to read the current selection. Filter clips with timeline.clips.where(...) "
+                "instead of selecting them in the UI.",
+            )
         return self._p.eval_js(
             snippet("selection_set"),
             {
                 "sequence": self._ref,
-                "name": name,
-                "name_contains": name_contains,
                 "track_type": track_type,
                 "track_index": track_index,
-                "clear": clear,
+                "clear": True,
             },
         )
 

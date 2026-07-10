@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-10
+
+### Changed
+- **The bridge plugin is now headless.** It's a `command`-entrypoint UXP
+  plugin whose `main.js` opens the WebSocket connection at module load —
+  no panel to dock, no menu to click. A UPIA-installed command plugin runs
+  its code automatically at Premiere startup (verified on 26.5: connects
+  with no panel and no developer tools). Setup is now just `pmr plugin
+  install` + one Premiere restart; the bridge then starts with Premiere
+  every launch and reconnects on its own.
+- `pmr plugin autostart` → `pmr plugin check` (confirms the headless
+  bridge is connected). Install/doctor/error messages updated accordingly.
+
+### Added
+- `plugin-panel/` — the previous status-panel variant, kept for anyone who
+  wants a visible connection readout instead of the headless plugin.
+
 ## [0.2.0] - 2026-07-10
 
 Live-validated against Adobe Premiere Pro 26.5. The full surface below was
@@ -109,5 +126,6 @@ Initial release. Structural sibling of [dvr](https://github.com/mhadifilms/dvr) 
 - `Sequence.setSelection` crashes Premiere 26.5 beta, so `timeline.select`
   supports read + clear only and refuses filtered selection.
 
+[0.3.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.3.0
 [0.2.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.2.0
 [0.1.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.1.0

@@ -44,10 +44,13 @@ pmr CLI / library / MCP  ──hosts──▶  ws://127.0.0.1:8855  ◀──dia
 One-time setup:
 
 ```bash
-pmr plugin install     # packages + installs the bridge panel via Adobe's installer
-# then in Premiere: Window > UXP Plugins > pmr bridge (dock it once, it reconnects forever)
+pmr plugin install     # installs the headless bridge via Adobe's installer
+# restart Premiere once so it registers the plugin
 pmr doctor --probe     # verify the whole chain
 ```
+
+The bridge is **headless** — a command-entrypoint UXP plugin that starts
+with Premiere automatically. There's no panel to open or keep open.
 
 ## Why pmr exists
 

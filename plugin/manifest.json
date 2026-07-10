@@ -1,34 +1,21 @@
 {
   "id": "pmr.bridge",
   "name": "pmr bridge",
-  "version": "0.1.0",
-  "main": "index.html",
+  "version": "0.3.0",
+  "main": "main.js",
   "manifestVersion": 5,
-  "host": {
-    "app": "premierepro",
-    "minVersion": "25.3"
-  },
+  "host": { "app": "premierepro", "minVersion": "25.3" },
   "entrypoints": [
     {
-      "type": "panel",
-      "id": "pmr.bridge.panel",
-      "label": {
-        "default": "pmr bridge"
-      },
-      "minimumSize": { "width": 230, "height": 120 },
-      "maximumSize": { "width": 800, "height": 1200 },
-      "preferredDockedSize": { "width": 300, "height": 220 },
-      "preferredFloatingSize": { "width": 340, "height": 260 }
+      "type": "command",
+      "id": "pmr.bridge.connect",
+      "label": { "default": "pmr bridge: reconnect" }
     }
   ],
   "requiredPermissions": {
     "localFileSystem": "fullAccess",
-    "network": {
-      "domains": "all"
-    },
-    "clipboard": "readAndWrite",
+    "network": { "domains": "all" },
     "ipc": { "enablePluginCommunication": true },
     "allowCodeGenerationFromStrings": true
-  },
-  "featureFlags": { "enableAlerts": true }
+  }
 }

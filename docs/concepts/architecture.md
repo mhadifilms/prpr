@@ -94,8 +94,20 @@ release). ExtendScript itself is deprecated and being sunset. So on
 Premiere 26 there is *no* supported no-plugin path, and pmr's bridge is
 not merely the best option — it's the only one.
 
-The friction is a one-time dock: open **Window → UXP Plugins → pmr
-bridge** once. Premiere persists open UXP panels in the workspace and
-re-opens them every launch (the same way Adobe's own frame.io and
-importer panels stay open), and the panel auto-reconnects to the bridge.
-`pmr plugin autostart` confirms this is in place.
+### Headless — no panel to open
+
+The bridge is a **headless** UXP plugin: instead of a dockable panel, it
+uses a `command` entrypoint whose `main.js` opens the WebSocket connection
+at module load. A UPIA-installed command plugin's `main.js` runs
+automatically at Premiere startup (verified on 26.5: it connects with no
+panel, no menu, no developer tools). So setup is just:
+
+```
+pmr plugin install     # UPIA installs the .ccx
+# restart Premiere once so it registers the plugin
+```
+
+After that the bridge starts with Premiere every launch and reconnects to
+the daemon on its own — there is nothing to open or keep open. `pmr plugin
+check` confirms it's connected. (A status-panel variant lives in
+`plugin-panel/` for anyone who wants a visible readout.)

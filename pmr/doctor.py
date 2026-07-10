@@ -55,7 +55,9 @@ def diagnose(
         fixes.append("Install Premiere Pro 25.6+ from Creative Cloud.")
     if not plugin["installed"]:
         problems.append("The pmr bridge plugin is not installed.")
-        fixes.append("Run `pmr plugin install`, then open Window > UXP Plugins > pmr bridge.")
+        fixes.append(
+            "Run `pmr plugin install`, then restart Premiere (the headless bridge auto-starts)."
+        )
     if not result["premiere_running"]:
         problems.append("Premiere Pro is not running.")
         fixes.append("Launch Premiere (pmr auto-launches it unless --no-launch).")

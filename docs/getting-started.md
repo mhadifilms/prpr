@@ -11,23 +11,21 @@ and Python 3.10+.
 
 ## One-time setup: the bridge plugin
 
-Premiere's UXP API lives inside the app, so `pmr` ships a tiny resident
-panel that connects Premiere to the CLI/library/MCP server.
+Premiere's UXP API lives inside the app, so `pmr` ships a tiny headless
+plugin that connects Premiere to the CLI/library/MCP server.
 
 ```bash
 pmr plugin install
 ```
 
 This packages the bundled plugin into a `.ccx` and installs it through
-Adobe's own installer (UPIA, part of Creative Cloud). Then, **once**, in
-Premiere:
+Adobe's own installer (UPIA, part of Creative Cloud). Then **restart
+Premiere once** so it registers the plugin.
 
-> Window → UXP Plugins → **pmr bridge**
-
-Dock the panel anywhere (it's small and quiet). It dials into the local
-`pmr` server automatically and reconnects forever — including across
-Premiere and daemon restarts. Panels that are part of a saved workspace
-re-open with it, so add it to your workspace and forget about it.
+The bridge is **headless** — a command-entrypoint plugin whose code runs
+at Premiere startup. There's no panel to dock or keep open: it dials into
+the local `pmr` server automatically and reconnects forever, including
+across Premiere and daemon restarts. Confirm with `pmr plugin check`.
 
 Verify the whole chain:
 

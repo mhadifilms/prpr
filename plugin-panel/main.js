@@ -27,7 +27,7 @@
  * pass through by value.
  */
 
-/* global WebSocket */
+/* global document, WebSocket */
 
 let ppro = null;
 let uxp = null;
@@ -436,32 +436,23 @@ function scheduleReconnect() {
 }
 
 // ---------------------------------------------------------------------------
-// Headless bootstrap (command entrypoint — no panel/DOM)
+// Panel UI
 // ---------------------------------------------------------------------------
 
-// No DOM in a command-only plugin; status updates are no-ops. The bridge
-// runs entirely from module load: connect() opens the WebSocket to the pmr
-// daemon and the reconnect loop keeps it alive for the app's lifetime.
-function updateStatus() {}
-
-try {
-  const uxpmod = require("uxp");
-  if (uxpmod && uxpmod.entrypoints && typeof uxpmod.entrypoints.setup === "function") {
-    uxpmod.entrypoints.setup({
-      commands: {
-        "pmr.bridge.connect": {
-          run() {
-            // Force a fresh connection attempt on demand.
-            try { if (ws) ws.close(); } catch (e) {}
-            connect();
-            return "pmr bridge: reconnecting";
-          },
-        },
-      },
-    });
+function updateStatus(url) {
+  const el = document.getElementById("status");
+  const detail = document.getElementById("detail");
+  if (!el) return;
+  if (connected) {
+    el.textContent = "connected";
+    el.className = "ok";
+    if (detail) detail.textContent = `${url || ""}  ·  ${requestCount} requests served`;
+  } else {
+    el.textContent = "waiting for pmr daemon…";
+    el.className = "waiting";
+    if (detail) detail.textContent = "run `pmr serve start` (or any pmr command) to connect";
   }
-} catch (e) {
-  /* entrypoints unavailable; the top-level connect() below still runs */
 }
 
 connect();
+updateStatus();

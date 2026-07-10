@@ -1,16 +1,18 @@
 """Platform-aware connection to Adobe Premiere Pro.
 
 Unlike DaVinci Resolve, Premiere has no external scripting socket: the
-UXP API lives inside the app and only the bundled `pmr bridge` panel can
-reach it. "Connecting" therefore means:
+UXP API lives inside the app and only the bundled `pmr bridge` plugin can
+reach it. The bridge is a **headless** UXP plugin (a `command` entrypoint
+whose main.js connects at load), so once installed it runs automatically
+at every Premiere launch — no panel, no menu. "Connecting" therefore means:
 
 1. Host the local WebSocket bridge server (:class:`pmr.bridge.Bridge`).
 2. Make sure Premiere Pro is running (auto-launch it if asked).
 3. Make sure the bridge plugin is installed (UPIA-managed `.ccx`).
-4. Wait for the plugin panel to dial in and say hello.
+4. Wait for the plugin to dial in and say hello.
 
-The plugin auto-reconnects every ~1.5s while its panel is open, so in
-steady state step 4 completes almost instantly.
+The plugin auto-reconnects every ~1.5s, so in steady state step 4
+completes almost instantly.
 """
 
 from __future__ import annotations
@@ -227,79 +229,52 @@ def uninstall_plugin() -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Auto-open / persistence
+# Headless startup
 # ---------------------------------------------------------------------------
 #
-# Premiere has no documented "open this panel at startup" hook. What it DOES
-# do is persist open UXP panels in the current workspace and re-open them on
-# next launch (that's how Adobe's own frame.io / importer panels stay open).
-# So the reliable "auto-open" is: open the panel once, and Premiere keeps it
-# open forever after — including across app and daemon restarts, and the
-# panel auto-reconnects to the bridge each time.
+# The bridge is a HEADLESS UXP plugin: a `command` entrypoint whose main.js
+# opens the WebSocket connection at module load. Once UPIA-installs it, its
+# code runs automatically at every Premiere launch — no panel to dock, no
+# menu to click. (Verified on Premiere 26.5: a UPIA-installed command-only
+# plugin's main.js executes at app startup and connects on its own.)
 #
-# We deliberately do NOT edit the workspace XML: it's a ~1MB doubly-escaped,
-# undocumented, version-specific nested plist, and a bad edit corrupts the
-# user's whole workspace. Instead ``ensure_panel_open`` opens the panel
-# programmatically when the UXP developer service is reachable (dev mode),
-# which is the same lever the CLI uses; otherwise we return a clear
-# one-time manual instruction.
+# So the only setup is: `pmr plugin install`, then restart Premiere once so
+# it registers the new plugin. After that it is fully automatic and
+# reconnects to the daemon whenever either side restarts.
 
 
-def _premiere_workspace_files() -> list[Path]:
-    """Best-effort list of the active-profile workspace XML files (macOS)."""
-    roots = sorted(
-        (Path.home() / "Documents" / "Adobe").glob("Premiere Pro*/*/Profile-*/Layouts")
-    )
-    out: list[Path] = []
-    for root in roots:
-        out.extend(sorted(root.glob("*.xml")))
-    return out
+def bridge_reachable(timeout: float = 20.0) -> dict[str, Any]:
+    """Check whether the headless plugin is running and connects to the bridge.
 
-
-def panel_persisted() -> bool:
-    """True if the bridge panel appears in a saved workspace (will auto-open)."""
-    for xml in _premiere_workspace_files():
-        try:
-            if _PLUGIN_ID in xml.read_text(encoding="utf-8", errors="replace"):
-                return True
-        except OSError:
-            continue
-    return False
-
-
-def ensure_panel_open(timeout: float = 20.0) -> dict[str, Any]:
-    """Open the bridge panel inside a running Premiere, if we can.
-
-    Uses a live bridge connection as the success signal: if the panel is
-    already open it connects immediately; if the UXP developer service is
-    running we can't force-open through it without the UDT app, so we
-    surface a precise manual step. Returns a status dict rather than
-    raising, since "user must click once" is a normal outcome.
+    Returns a status dict rather than raising — "not connected yet, restart
+    Premiere" is a normal setup outcome, not an error.
     """
     if not premiere_process_running():
         return {
-            "open": False,
+            "connected": False,
             "premiere_running": False,
-            "action": "Launch Premiere Pro, then run this again.",
+            "action": "Launch Premiere Pro (the headless bridge starts with it).",
         }
     bridge = Bridge()
     try:
         bridge.start()
         if bridge._hello_event.wait(timeout=timeout):
+            hello = bridge.hello or {}
             return {
-                "open": True,
-                "persisted": panel_persisted(),
-                "note": "Bridge panel is open and connected. Premiere will re-open it "
-                "on next launch as long as you don't remove it from the workspace.",
+                "connected": True,
+                "plugin": hello.get("plugin"),
+                "host": hello.get("host"),
+                "note": "Headless bridge is running. It starts automatically with "
+                "Premiere and reconnects on its own.",
             }
     finally:
         bridge.close()
     return {
-        "open": False,
+        "connected": False,
         "premiere_running": True,
-        "persisted": panel_persisted(),
-        "action": "In Premiere, open Window > UXP Plugins > pmr bridge once. "
-        "Premiere then keeps it open across restarts automatically.",
+        "plugin_installed": plugin_installed()["installed"],
+        "action": "Restart Premiere Pro so it loads the installed bridge plugin. "
+        "If it still doesn't connect, run `pmr doctor --probe`.",
     }
 
 
@@ -326,7 +301,7 @@ def connect(auto_launch: bool = True, timeout: float = 30.0) -> Bridge:
             raise errors.ConnectionError(
                 "Premiere Pro is not running.",
                 fix="Launch Premiere Pro (or omit --no-launch), then open the "
-                "`pmr bridge` panel from Window > UXP Plugins.",
+                "headless bridge plugin (`pmr plugin install`, then restart Premiere).",
                 state={"auto_launch": False},
             )
         launch_premiere()
@@ -344,8 +319,8 @@ def connect(auto_launch: bool = True, timeout: float = 30.0) -> Bridge:
         )
         if not status["installed"]:
             exc.fix = (
-                "Install the bridge plugin with `pmr plugin install`, then open "
-                "Window > UXP Plugins > pmr bridge in Premiere."
+                "Install the bridge plugin with `pmr plugin install`, then restart "
+                "Premiere so it loads the headless bridge."
             )
         bridge.close()
         raise
@@ -378,13 +353,12 @@ _ = shutil  # imported for future use in relocation helpers
 
 __all__ = [
     "Bridge",
+    "bridge_reachable",
     "build_ccx",
     "connect",
-    "ensure_panel_open",
     "install_plugin",
     "installed_apps",
     "launch_premiere",
-    "panel_persisted",
     "plugin_installed",
     "plugin_source_dir",
     "premiere_process_running",

@@ -247,9 +247,9 @@ class Bridge:
         if not self._hello_event.wait(timeout=timeout):
             raise errors.PluginNotConnectedError(
                 "The pmr bridge plugin did not connect.",
-                cause="Premiere Pro isn't running, or the `pmr bridge` panel isn't open.",
-                fix="Open Premiere Pro, then Window > UXP Plugins > pmr bridge. "
-                "Run `pmr doctor` for setup diagnostics.",
+                cause="Premiere Pro isn't running, or the headless bridge plugin isn't loaded yet.",
+                fix="Launch Premiere Pro (the headless bridge starts with it). If it "
+                "was just installed, restart Premiere once. Run `pmr doctor`.",
                 state={"port": self.port, "timeout_s": timeout},
             )
         return self._hello or {}
@@ -284,7 +284,7 @@ class Bridge:
         if conn is None:
             raise errors.PluginNotConnectedError(
                 "No plugin connection.",
-                cause="Premiere Pro isn't running, or the `pmr bridge` panel isn't open.",
+                cause="Premiere Pro isn't running, or the headless bridge plugin isn't loaded yet.",
                 fix="Open Premiere Pro and the pmr bridge panel, or run `pmr doctor`.",
                 state={"port": self.port},
             )

@@ -1,0 +1,18 @@
+{
+    "plugin": {
+        "sessions": [
+            {
+                "app": {
+                    "id": "premierepro",
+                    "version": "26.5.0",
+                    "name": "Premiere Pro (Beta)"
+                },
+                "pluginSessionId": "9509bf8a-e305-4575-962f-9d3272abb299"
+            }
+        ],
+        "info": {
+            "id": "pmr.bridge",
+            "name": "pmr bridge"
+        }
+    }
+}

@@ -24,14 +24,7 @@
   "requiredPermissions": {
     "localFileSystem": "fullAccess",
     "network": {
-      "domains": [
-        "ws://localhost:8855",
-        "ws://127.0.0.1:8855",
-        "ws://localhost:8856",
-        "ws://127.0.0.1:8856",
-        "ws://localhost:8857",
-        "ws://127.0.0.1:8857"
-      ]
+      "domains": "all"
     },
     "clipboard": "readAndWrite",
     "ipc": { "enablePluginCommunication": true },

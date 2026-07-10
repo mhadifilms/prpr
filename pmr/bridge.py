@@ -211,14 +211,28 @@ class Bridge:
             return
 
         async def _shutdown() -> None:
+            with self._conn_lock:
+                conn = self._conn
+                self._conn = None
+            if conn is not None:
+                try:
+                    await conn.close()
+                except Exception:
+                    pass
             if self._server is not None:
                 self._server.close()
-            loop.stop()
+                try:
+                    await self._server.wait_closed()
+                except Exception:
+                    pass
+            loop.call_soon(loop.stop)
 
         try:
             asyncio.run_coroutine_threadsafe(_shutdown(), loop).result(timeout=5)
         except Exception:
             pass
+        if self._thread is not None:
+            self._thread.join(timeout=5)
 
     # ------------------------------------------------------------------
     # State

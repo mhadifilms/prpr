@@ -932,20 +932,17 @@
 <p>Requirements: Adobe Premiere Pro <strong>25.6+</strong> (built and tested against 26.x)
 and Python 3.10+.</p>
 <h2 id="one-time-setup-the-bridge-plugin">One-time setup: the bridge plugin<a class="headerlink" href="#one-time-setup-the-bridge-plugin" title="Permanent link">&para;</a></h2>
-<p>Premiere's UXP API lives inside the app, so <code>pmr</code> ships a tiny resident
-panel that connects Premiere to the CLI/library/MCP server.</p>
+<p>Premiere's UXP API lives inside the app, so <code>pmr</code> ships a tiny headless
+plugin that connects Premiere to the CLI/library/MCP server.</p>
 <div class="highlight"><pre><span></span><code>pmr<span class="w"> </span>plugin<span class="w"> </span>install
 </code></pre></div>
 <p>This packages the bundled plugin into a <code>.ccx</code> and installs it through
-Adobe's own installer (UPIA, part of Creative Cloud). Then, <strong>once</strong>, in
-Premiere:</p>
-<blockquote>
-<p>Window → UXP Plugins → <strong>pmr bridge</strong></p>
-</blockquote>
-<p>Dock the panel anywhere (it's small and quiet). It dials into the local
-<code>pmr</code> server automatically and reconnects forever — including across
-Premiere and daemon restarts. Panels that are part of a saved workspace
-re-open with it, so add it to your workspace and forget about it.</p>
+Adobe's own installer (UPIA, part of Creative Cloud). Then <strong>restart
+Premiere once</strong> so it registers the plugin.</p>
+<p>The bridge is <strong>headless</strong> — a command-entrypoint plugin whose code runs
+at Premiere startup. There's no panel to dock or keep open: it dials into
+the local <code>pmr</code> server automatically and reconnects forever, including
+across Premiere and daemon restarts. Confirm with <code>pmr plugin check</code>.</p>
 <p>Verify the whole chain:</p>
 <div class="highlight"><pre><span></span><code>pmr<span class="w"> </span>doctor<span class="w"> </span>--probe
 </code></pre></div>

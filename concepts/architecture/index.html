@@ -860,6 +860,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Is a plugin really required? (yes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#headless-no-panel-to-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Headless — no panel to open
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1005,11 +1022,19 @@ and <code>editoriginal</code>; <code>DoScript</code> is gone (verified on 26.5 b
 release). ExtendScript itself is deprecated and being sunset. So on
 Premiere 26 there is <em>no</em> supported no-plugin path, and pmr's bridge is
 not merely the best option — it's the only one.</p>
-<p>The friction is a one-time dock: open <strong>Window → UXP Plugins → pmr
-bridge</strong> once. Premiere persists open UXP panels in the workspace and
-re-opens them every launch (the same way Adobe's own frame.io and
-importer panels stay open), and the panel auto-reconnects to the bridge.
-<code>pmr plugin autostart</code> confirms this is in place.</p>
+<h3 id="headless-no-panel-to-open">Headless — no panel to open<a class="headerlink" href="#headless-no-panel-to-open" title="Permanent link">&para;</a></h3>
+<p>The bridge is a <strong>headless</strong> UXP plugin: instead of a dockable panel, it
+uses a <code>command</code> entrypoint whose <code>main.js</code> opens the WebSocket connection
+at module load. A UPIA-installed command plugin's <code>main.js</code> runs
+automatically at Premiere startup (verified on 26.5: it connects with no
+panel, no menu, no developer tools). So setup is just:</p>
+<div class="highlight"><pre><span></span><code>pmr plugin install     # UPIA installs the .ccx
+# restart Premiere once so it registers the plugin
+</code></pre></div>
+<p>After that the bridge starts with Premiere every launch and reconnects to
+the daemon on its own — there is nothing to open or keep open. <code>pmr plugin
+check</code> confirms it's connected. (A status-panel variant lives in
+<code>plugin-panel/</code> for anyone who wants a visible readout.)</p>
 
 
 

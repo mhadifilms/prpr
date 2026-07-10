@@ -469,6 +469,56 @@ SNIPPETS: dict[str, str] = {
         }
         return { position: tt(await seq.getPlayerPosition()) };
     """),
+    "sequence_settings_set": _s("""
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        const settings = await seq.getSettings();
+        const s = args.set || {};
+        if (s.max_bit_depth !== undefined) await settings.setMaximumBitDepth(!!s.max_bit_depth);
+        if (s.max_render_quality !== undefined) await settings.setMaxRenderQuality(!!s.max_render_quality);
+        if (s.editing_mode !== undefined) await settings.setEditingMode(String(s.editing_mode));
+        if (s.video_pixel_aspect_ratio !== undefined) await settings.setVideoPixelAspectRatio(String(s.video_pixel_aspect_ratio));
+        if (s.video_field_type !== undefined) await settings.setVideoFieldType(Number(s.video_field_type));
+        if (s.composite_in_linear_color !== undefined) await settings.setCompositeInLinearColor(!!s.composite_in_linear_color);
+        if (s.preview_file_format !== undefined) await settings.setPreviewFileFormat(String(s.preview_file_format));
+        if (s.preview_codec !== undefined) await settings.setPreviewCodec(String(s.preview_codec));
+        if (Object.keys(s).length) {
+          runTransaction(project, "pmr: sequence settings", (add) => {
+            add(seq.createSetSettingsAction(settings));
+          });
+        }
+        const out = {};
+        const grab = async (key, fn) => { try { out[key] = await fn(); } catch (e) {} };
+        await grab("max_bit_depth", () => settings.getMaximumBitDepth());
+        await grab("max_render_quality", () => settings.getMaxRenderQuality());
+        await grab("editing_mode", () => settings.getEditingMode());
+        await grab("video_pixel_aspect_ratio", () => settings.getVideoPixelAspectRatio());
+        await grab("video_field_type", () => settings.getVideoFieldType());
+        await grab("composite_in_linear_color", () => settings.getCompositeInLinearColor());
+        return out;
+    """),
+    "mogrt_from_library": _s("""
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        const editor = ppro.SequenceEditor.getEditor(seq);
+        let atSeconds = args.seconds;
+        if (atSeconds === undefined || atSeconds === null) {
+          const end = await seq.getEndTime();
+          atSeconds = end ? end.seconds : 0;
+        }
+        const items = editor.insertMogrtFromLibrary(
+          args.library_name, args.element_name, secondsToTick(atSeconds),
+          args.video_track ?? 0, args.audio_track ?? 0
+        );
+        if (!items || !items.length) throw new Error("MOGRT-from-library produced no items");
+        const names = [];
+        for (const item of items) { try { names.push(await item.getName()); } catch (e) { names.push(null); } }
+        return { inserted: names, at_seconds: Number(atSeconds) };
+    """),
+    "mogrt_path": _s("""
+        const p = await ppro.SequenceEditor.getInstalledMogrtPath();
+        return { path: p };
+    """),
     # ------------------------------------------------------------------
     # Markers
     # ------------------------------------------------------------------

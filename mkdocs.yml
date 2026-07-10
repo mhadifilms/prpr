@@ -50,4 +50,6 @@ nav:
   - Declarative specs: spec.md
   - Daemon: daemon.md
   - Cookbook: cookbook.md
+  - Concepts:
+      - Architecture: concepts/architecture.md
   - dvr ↔ pmr parity: parity.md

@@ -416,6 +416,17 @@ def _h_marker_add(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def _h_marker_move(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    from ..timeline import Timeline
+
+    timeline = Timeline(ctx.premiere(), args.get("timeline"))
+    return timeline.move_marker(
+        float(args["to_seconds"]),
+        name=args.get("name"),
+        from_seconds=args.get("from_seconds"),
+    )
+
+
 def _h_marker_list(ctx: _Context, args: dict[str, Any]) -> list[dict[str, Any]]:
     return ctx.premiere().eval_js(
         snippet("marker_list"),
@@ -568,6 +579,77 @@ def _h_timeline_scene_detect(ctx: _Context, args: dict[str, Any]) -> dict[str, A
     )
 
 
+def _h_timeline_work_area(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    from ..timeline import Timeline
+
+    timeline = Timeline(ctx.premiere(), args.get("timeline"))
+    return timeline.work_area(args.get("in_seconds"), args.get("out_seconds"))
+
+
+def _h_timeline_keyframes(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    from ..timeline import Timeline
+
+    timeline = Timeline(ctx.premiere(), args.get("timeline"))
+    return timeline.keyframes(
+        args["component"],
+        args["param"],
+        clip_name=args.get("clip_name"),
+        track_index=args.get("track_index"),
+        kind=args.get("kind", "video"),
+    )
+
+
+def _h_timeline_track(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    from ..timeline import Timeline
+
+    timeline = Timeline(ctx.premiere(), args.get("timeline"))
+    return timeline.track_update(
+        int(args["track_index"]),
+        track_type=args.get("track_type", "video"),
+        mute=args.get("mute"),
+        set_name=args.get("set_name"),
+    )
+
+
+def _h_timeline_clone(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    from ..timeline import Timeline
+
+    timeline = Timeline(ctx.premiere(), args.get("timeline"))
+    return timeline.clone()
+
+
+def _h_timeline_subsequence(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    from ..timeline import Timeline
+
+    timeline = Timeline(ctx.premiere(), args.get("timeline"))
+    return timeline.create_subsequence(
+        ignore_track_targeting=bool(args.get("ignore_track_targeting", True))
+    )
+
+
+def _h_timeline_in_out(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    from ..timeline import Timeline
+
+    timeline = Timeline(ctx.premiere(), args.get("timeline"))
+    return timeline.set_in_out(args.get("in_seconds"), args.get("out_seconds"))
+
+
+def _h_timeline_create_from_media(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    tl = ctx.premiere().timeline.create_from_media(
+        args["name"], list(args["items"]), bin=args.get("bin")
+    )
+    return tl.inspect(names_only=True)
+
+
+def _h_timeline_selection(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    from ..timeline import Timeline
+
+    timeline = Timeline(ctx.premiere(), args.get("timeline"))
+    if bool(args.get("clear", False)):
+        return timeline.select(clear=True)
+    return timeline.selection()
+
+
 def _h_media_subclip(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
     return ctx.premiere().media.create_subclip(
         args["subclip_name"],
@@ -647,6 +729,77 @@ def _h_media_move(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
         source_bin=args.get("source_bin"),
         name_contains=args.get("name_contains"),
         names=args.get("names"),
+    )
+
+
+def _h_media_color_label(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().media.color_label(
+        name=args.get("name"),
+        path=args.get("path"),
+        set_index=args.get("set_index"),
+    )
+
+
+def _h_media_bin_rename(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().media.bin_rename(args["path"], args["new_name"])
+
+
+def _h_media_smart_bin(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().media.smart_bin(args["name"], args["query"])
+
+
+def _h_media_footage_interpretation(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().media.footage_interpretation(
+        name=args.get("name"),
+        path=args.get("path"),
+        set=args.get("set"),
+    )
+
+
+def _h_media_purge_cache(ctx: _Context, _args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().media.purge_cache()
+
+
+# ---------------------------------------------------------------------------
+# Handlers — project (library surface)
+# ---------------------------------------------------------------------------
+
+
+def _h_project_scratch_disks(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().project.require_current().scratch_disks(
+        set_type=args.get("set_type"),
+        set_path=args.get("set_path"),
+    )
+
+
+def _h_project_ingest(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().project.require_current().ingest(args.get("enabled"))
+
+
+def _h_project_color_settings(ctx: _Context, _args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().project.require_current().color_settings()
+
+
+def _h_project_import_sequences(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().project.require_current().import_sequences(
+        args["project_path"],
+        args.get("sequence_guids"),
+    )
+
+
+def _h_project_import_ae_comps(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().project.require_current().import_ae_comps(
+        args["aep_path"],
+        args.get("comp_names"),
+        bin=args.get("bin"),
+    )
+
+
+def _h_app_preference(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().preference(
+        args["key"],
+        args.get("value"),
+        persistent=bool(args.get("persistent", True)),
     )
 
 
@@ -1045,6 +1198,70 @@ def build_registry() -> list[_ToolSpec]:
             handler=_h_project_save,
         ),
         _ToolSpec(
+            name="project_scratch_disks",
+            description=(
+                "Read (or set one of) the current project's scratch disk paths. "
+                "Types: capture, video_preview, audio_preview, auto_save, "
+                "ccl_libraries, capsule_media. pmr-only tool."
+            ),
+            schema=_schema(
+                {
+                    "set_type": {"type": "string"},
+                    "set_path": {"type": "string"},
+                }
+            ),
+            handler=_h_project_scratch_disks,
+        ),
+        _ToolSpec(
+            name="project_ingest",
+            description=(
+                "Read (or set with enabled) whether ingest is enabled for the "
+                "current project. pmr-only tool."
+            ),
+            schema=_schema({"enabled": {"type": "boolean"}}),
+            handler=_h_project_ingest,
+        ),
+        _ToolSpec(
+            name="project_color_settings",
+            description=(
+                "Read the current project's color settings (graphics white "
+                "luminance)."
+            ),
+            handler=_h_project_color_settings,
+        ),
+        _ToolSpec(
+            name="project_import_sequences",
+            description=(
+                "Import sequences from another .prproj into the current project "
+                "(all of them when sequence_guids is omitted). pmr-only tool."
+            ),
+            schema=_schema(
+                {
+                    "project_path": {"type": "string"},
+                    "sequence_guids": {"type": "array", "items": {"type": "string"}},
+                },
+                required=["project_path"],
+            ),
+            handler=_h_project_import_sequences,
+        ),
+        _ToolSpec(
+            name="project_import_ae_comps",
+            description=(
+                "Import After Effects comps from an .aep into the current project "
+                "(all of them when comp_names is omitted), optionally into a bin. "
+                "pmr-only tool."
+            ),
+            schema=_schema(
+                {
+                    "aep_path": {"type": "string"},
+                    "comp_names": {"type": "array", "items": {"type": "string"}},
+                    "bin": {"type": "string"},
+                },
+                required=["aep_path"],
+            ),
+            handler=_h_project_import_ae_comps,
+        ),
+        _ToolSpec(
             name="project_delete",
             description=(
                 "Delete a project file (.prproj) from disk. Closes it first when it "
@@ -1227,6 +1444,26 @@ def build_registry() -> list[_ToolSpec]:
                 required=["seconds"],
             ),
             handler=_h_marker_add,
+        ),
+        _ToolSpec(
+            name="marker_move",
+            description=(
+                "Move a marker (matched by name and/or its current position, "
+                "from_seconds) to a new time (to_seconds) on a sequence."
+            ),
+            schema=_schema(
+                {
+                    "name": {"type": "string"},
+                    "from_seconds": {
+                        "type": "number",
+                        "description": "Current marker position to match.",
+                    },
+                    "to_seconds": {"type": "number"},
+                    "timeline": {"type": "string"},
+                },
+                required=["to_seconds"],
+            ),
+            handler=_h_marker_move,
         ),
         _ToolSpec(
             name="marker_list",
@@ -1566,6 +1803,132 @@ def build_registry() -> list[_ToolSpec]:
             ),
             handler=_h_timeline_scene_detect,
         ),
+        _ToolSpec(
+            name="timeline_work_area",
+            description=(
+                "Read (or set) a sequence's work area in/out points (Premiere "
+                "26.5+). Omit both args to read; pass in_seconds/out_seconds to set."
+            ),
+            schema=_schema(
+                {
+                    "in_seconds": {"type": "number"},
+                    "out_seconds": {"type": "number"},
+                    "timeline": {"type": "string"},
+                }
+            ),
+            handler=_h_timeline_work_area,
+        ),
+        _ToolSpec(
+            name="timeline_keyframes",
+            description=(
+                "List keyframe times for a clip's component parameter. Identify "
+                "the clip by clip_name / track_index; component/param are display "
+                "or match names (see clip_components). pmr-only tool."
+            ),
+            schema=_schema(
+                {
+                    "component": {"type": "string"},
+                    "param": {"type": "string"},
+                    "clip_name": {"type": "string"},
+                    "track_index": {"type": "integer", "description": "0-based track index."},
+                    "kind": {"type": "string", "enum": ["video", "audio"], "default": "video"},
+                    "timeline": {"type": "string"},
+                },
+                required=["component", "param"],
+            ),
+            handler=_h_timeline_keyframes,
+        ),
+        _ToolSpec(
+            name="timeline_track",
+            description=(
+                "Mute/unmute (mute) or rename (set_name, Premiere 26.3+) a track "
+                "on a sequence. track_index is 0-based."
+            ),
+            schema=_schema(
+                {
+                    "track_index": {"type": "integer", "description": "0-based track index."},
+                    "track_type": {
+                        "type": "string",
+                        "enum": ["video", "audio", "caption"],
+                        "default": "video",
+                    },
+                    "mute": {"type": "boolean"},
+                    "set_name": {"type": "string"},
+                    "timeline": {"type": "string"},
+                },
+                required=["track_index"],
+            ),
+            handler=_h_timeline_track,
+        ),
+        _ToolSpec(
+            name="timeline_clone",
+            description="Duplicate a sequence (Premiere names the copy).",
+            schema=_schema({"timeline": {"type": "string"}}),
+            handler=_h_timeline_clone,
+        ),
+        _ToolSpec(
+            name="timeline_subsequence",
+            description=(
+                "Create a subsequence from the sequence's current in/out selection. "
+                "ignore_track_targeting=true (default) includes all tracks."
+            ),
+            schema=_schema(
+                {
+                    "ignore_track_targeting": {"type": "boolean", "default": True},
+                    "timeline": {"type": "string"},
+                }
+            ),
+            handler=_h_timeline_subsequence,
+        ),
+        _ToolSpec(
+            name="timeline_in_out",
+            description=(
+                "Read (with no args) or set a sequence's in/out points (seconds)."
+            ),
+            schema=_schema(
+                {
+                    "in_seconds": {"type": "number"},
+                    "out_seconds": {"type": "number"},
+                    "timeline": {"type": "string"},
+                }
+            ),
+            handler=_h_timeline_in_out,
+        ),
+        _ToolSpec(
+            name="timeline_create_from_media",
+            description=(
+                "Create a sequence pre-populated from project-panel items (by name), "
+                "optionally placing the new sequence in a bin."
+            ),
+            schema=_schema(
+                {
+                    "name": {"type": "string"},
+                    "items": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                        "description": "Project-panel item names.",
+                    },
+                    "bin": {"type": "string"},
+                },
+                required=["name", "items"],
+            ),
+            handler=_h_timeline_create_from_media,
+        ),
+        _ToolSpec(
+            name="timeline_selection",
+            description=(
+                "Read the current track-item selection, or clear it with clear=true "
+                "(setting a selection by filter crashes Premiere 26.5 beta)."
+            ),
+            schema=_schema(
+                {
+                    "clear": {"type": "boolean", "default": False},
+                    "timeline": {"type": "string"},
+                }
+            ),
+            handler=_h_timeline_selection,
+        ),
         # ---- media -----------------------------------------------------
         _ToolSpec(
             name="media_inspect",
@@ -1649,6 +2012,76 @@ def build_registry() -> list[_ToolSpec]:
                 required=["target_bin"],
             ),
             handler=_h_media_move,
+        ),
+        _ToolSpec(
+            name="media_color_label",
+            description=(
+                "Read (or set with set_index, 0-14) a project-panel item's color "
+                "label. Identify the item by name or media path."
+            ),
+            schema=_schema(
+                {
+                    "name": {"type": "string", "description": "Project-item name."},
+                    "path": {"type": "string", "description": "Media path of the item."},
+                    "set_index": {
+                        "type": "integer",
+                        "description": "Color label index 0-14 to set; omit to read.",
+                    },
+                }
+            ),
+            handler=_h_media_color_label,
+        ),
+        _ToolSpec(
+            name="media_bin_rename",
+            description="Rename a project-panel bin identified by its current slash path.",
+            schema=_schema(
+                {
+                    "path": {"type": "string"},
+                    "new_name": {"type": "string"},
+                },
+                required=["path", "new_name"],
+            ),
+            handler=_h_media_bin_rename,
+        ),
+        _ToolSpec(
+            name="media_smart_bin",
+            description=(
+                "Create a smart bin at the project root with a search query. pmr-only tool."
+            ),
+            schema=_schema(
+                {
+                    "name": {"type": "string"},
+                    "query": {"type": "string"},
+                },
+                required=["name", "query"],
+            ),
+            handler=_h_media_smart_bin,
+        ),
+        _ToolSpec(
+            name="media_footage_interpretation",
+            description=(
+                "Read (or update via set) a clip's footage interpretation. Identify "
+                "the clip by name or media path. Settable keys: frame_rate, "
+                "pixel_aspect_ratio, field_type, remove_pulldown, alpha_usage, "
+                "ignore_alpha, invert_alpha, input_lut_id. pmr-only tool."
+            ),
+            schema=_schema(
+                {
+                    "name": {"type": "string", "description": "Project-item name."},
+                    "path": {"type": "string", "description": "Media path of the clip."},
+                    "set": {
+                        "type": "object",
+                        "additionalProperties": True,
+                        "description": "Interpretation keys to update; omit to read.",
+                    },
+                }
+            ),
+            handler=_h_media_footage_interpretation,
+        ),
+        _ToolSpec(
+            name="media_purge_cache",
+            description="Purge Premiere's media cache (Premiere 26.5+). pmr-only tool.",
+            handler=_h_media_purge_cache,
         ),
         _ToolSpec(
             name="media_subclip",
@@ -2067,6 +2500,24 @@ def build_registry() -> list[_ToolSpec]:
             ),
             handler=_h_plugin_status,
             needs_premiere=False,
+        ),
+        # ---- app preferences -------------------------------------------
+        _ToolSpec(
+            name="app_preference",
+            description=(
+                "Read (or set with value) a Premiere application preference by key. "
+                "persistent=true (default) writes it to the persistent store. "
+                "pmr-only tool."
+            ),
+            schema=_schema(
+                {
+                    "key": {"type": "string"},
+                    "value": {"description": "Value to set; omit to read."},
+                    "persistent": {"type": "boolean", "default": True},
+                },
+                required=["key"],
+            ),
+            handler=_h_app_preference,
         ),
         # ---- power-user (eval, gated) ---------------------------------
         _ToolSpec(

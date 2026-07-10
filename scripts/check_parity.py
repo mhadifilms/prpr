@@ -45,6 +45,8 @@ NO_TOOL_EXPECTED = {
     "timeline.track_update",  # tool name is timeline_track, not timeline_track_update
     "timeline.subsequence",
     "timeline.clone",
+    "timeline.set_settings",
+    "timeline.insert_mogrt_from_library",
     "timeline.create_from_media",
     "timeline.selection",
     "media.proxy",  # library-level, per-clip

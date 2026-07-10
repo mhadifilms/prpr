@@ -283,6 +283,37 @@ class Timeline:
             },
         )
 
+    def set_settings(self, **settings: Any) -> dict[str, Any]:
+        """Read (with no args) or write sequence settings. Settable keys:
+        max_bit_depth, max_render_quality, editing_mode,
+        video_pixel_aspect_ratio, video_field_type,
+        composite_in_linear_color, preview_file_format, preview_codec."""
+        return self._p.eval_js(
+            snippet("sequence_settings_set"), {"sequence": self._ref, "set": settings}
+        )
+
+    def insert_mogrt_from_library(
+        self,
+        library_name: str,
+        element_name: str,
+        *,
+        seconds: float | None = None,
+        video_track: int = 0,
+        audio_track: int = 0,
+    ) -> dict[str, Any]:
+        """Insert a MOGRT from a Creative Cloud / local library by name."""
+        return self._p.eval_js(
+            snippet("mogrt_from_library"),
+            {
+                "sequence": self._ref,
+                "library_name": library_name,
+                "element_name": element_name,
+                "seconds": seconds,
+                "video_track": video_track,
+                "audio_track": audio_track,
+            },
+        )
+
     # -- editing -------------------------------------------------------
 
     def insert(

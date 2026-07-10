@@ -532,6 +532,70 @@ def _h_clip_components(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def _h_effect_param_set(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().effects.set_param(
+        args["component"],
+        args["param"],
+        args["value"],
+        timeline=args.get("timeline"),
+        clip_name=args.get("clip_name"),
+        track_index=args.get("track_index"),
+        kind=args.get("kind", "video"),
+        at_seconds=args.get("at_seconds"),
+    )
+
+
+def _h_timeline_insert_mogrt(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    from ..timeline import Timeline
+
+    timeline = Timeline(ctx.premiere(), args.get("timeline"))
+    return timeline.insert_mogrt(
+        args["path"],
+        seconds=args.get("seconds"),
+        video_track=int(args.get("video_track", 0)),
+        audio_track=int(args.get("audio_track", 0)),
+    )
+
+
+def _h_timeline_scene_detect(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    from ..timeline import Timeline
+
+    timeline = Timeline(ctx.premiere(), args.get("timeline"))
+    return timeline.scene_edit_detection(
+        operation=args.get("operation", "cut"),
+        clip_name=args.get("clip_name"),
+        track_index=args.get("track_index"),
+    )
+
+
+def _h_media_subclip(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().media.create_subclip(
+        args["subclip_name"],
+        float(args["start_seconds"]),
+        float(args["end_seconds"]),
+        name=args.get("name"),
+        path=args.get("path"),
+        hard_boundaries=bool(args.get("hard_boundaries", False)),
+        take_video=args.get("take_video", True),
+        take_audio=args.get("take_audio", True),
+    )
+
+
+def _h_media_attach_proxy(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().media.attach_proxy(
+        args["proxy_path"],
+        name=args.get("name"),
+        path=args.get("path"),
+        is_hi_res=bool(args.get("is_hi_res", False)),
+    )
+
+
+def _h_media_transcribe(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
+    return ctx.premiere().media.transcript_export(
+        name=args.get("name"), path=args.get("path")
+    )
+
+
 # ---------------------------------------------------------------------------
 # Handlers — media
 # ---------------------------------------------------------------------------
@@ -1431,6 +1495,80 @@ def build_registry() -> list[_ToolSpec]:
             ),
             handler=_h_clip_components,
         ),
+        _ToolSpec(
+            name="effect_param_set",
+            description=(
+                "Set a component parameter on a clip — transforms (Motion/Scale, "
+                "Position, Rotation), Opacity, or any applied effect's params. "
+                "Pass at_seconds to write a keyframe instead of a static value. "
+                "Values: number, boolean, string, [x, y] point, or {r,g,b,a} "
+                "color. pmr-only tool."
+            ),
+            schema=_schema(
+                {
+                    "component": {
+                        "type": "string",
+                        "description": "Component display or match name, e.g. 'Motion', 'Opacity'.",
+                    },
+                    "param": {
+                        "type": "string",
+                        "description": "Parameter display name, e.g. 'Scale', 'Position'.",
+                    },
+                    "value": {
+                        "description": "number | boolean | string | [x, y] | {r,g,b,a}",
+                    },
+                    "clip_name": {"type": "string"},
+                    "track_index": {"type": "integer", "description": "0-based track index."},
+                    "kind": {"type": "string", "enum": ["video", "audio"], "default": "video"},
+                    "at_seconds": {
+                        "type": "number",
+                        "description": "Keyframe time; omit for a static value.",
+                    },
+                    "timeline": {"type": "string"},
+                },
+                required=["component", "param", "value"],
+            ),
+            handler=_h_effect_param_set,
+        ),
+        _ToolSpec(
+            name="timeline_insert_mogrt",
+            description=(
+                "Insert a Motion Graphics template (.mogrt) into a sequence at a "
+                "time (defaults to the end). pmr-only tool."
+            ),
+            schema=_schema(
+                {
+                    "path": {"type": "string", "description": "Absolute path to the .mogrt."},
+                    "seconds": {"type": "number"},
+                    "video_track": {"type": "integer", "default": 0},
+                    "audio_track": {"type": "integer", "default": 0},
+                    "timeline": {"type": "string"},
+                },
+                required=["path"],
+            ),
+            handler=_h_timeline_insert_mogrt,
+        ),
+        _ToolSpec(
+            name="timeline_scene_detect",
+            description=(
+                "Run scene edit detection on matching clips: apply cuts, create "
+                "markers, or create subclips at detected scene changes. Long "
+                "operation. pmr-only tool."
+            ),
+            schema=_schema(
+                {
+                    "operation": {
+                        "type": "string",
+                        "enum": ["cut", "marker", "subclip"],
+                        "default": "cut",
+                    },
+                    "clip_name": {"type": "string"},
+                    "track_index": {"type": "integer", "description": "0-based track index."},
+                    "timeline": {"type": "string"},
+                }
+            ),
+            handler=_h_timeline_scene_detect,
+        ),
         # ---- media -----------------------------------------------------
         _ToolSpec(
             name="media_inspect",
@@ -1514,6 +1652,59 @@ def build_registry() -> list[_ToolSpec]:
                 required=["target_bin"],
             ),
             handler=_h_media_move,
+        ),
+        _ToolSpec(
+            name="media_subclip",
+            description=(
+                "Create a subclip from a source clip's time range (Premiere "
+                "26.3+). Identify the source by project-item name or media path. "
+                "pmr-only tool."
+            ),
+            schema=_schema(
+                {
+                    "subclip_name": {"type": "string"},
+                    "start_seconds": {"type": "number"},
+                    "end_seconds": {"type": "number"},
+                    "name": {"type": "string", "description": "Source project-item name."},
+                    "path": {"type": "string", "description": "Source media path."},
+                    "hard_boundaries": {"type": "boolean", "default": False},
+                    "take_video": {"type": "boolean", "default": True},
+                    "take_audio": {"type": "boolean", "default": True},
+                },
+                required=["subclip_name", "start_seconds", "end_seconds"],
+            ),
+            handler=_h_media_subclip,
+        ),
+        _ToolSpec(
+            name="media_attach_proxy",
+            description=(
+                "Attach a proxy (or hi-res alternate with is_hi_res=true) to a "
+                "clip. Not undoable."
+            ),
+            schema=_schema(
+                {
+                    "proxy_path": {"type": "string"},
+                    "name": {"type": "string", "description": "Project-item name."},
+                    "path": {"type": "string", "description": "Media path of the clip."},
+                    "is_hi_res": {"type": "boolean", "default": False},
+                },
+                required=["proxy_path"],
+            ),
+            handler=_h_media_attach_proxy,
+        ),
+        _ToolSpec(
+            name="media_transcribe",
+            description=(
+                "Export a clip's speech-to-text transcript as JSON (Premiere "
+                "26.3+; returns has_transcript=false when none exists)."
+            ),
+            schema=_schema(
+                {
+                    "name": {"type": "string", "description": "Project-item name."},
+                    "path": {"type": "string", "description": "Media path of the clip."},
+                }
+            ),
+            handler=_h_media_transcribe,
         ),
         _ToolSpec(
             name="media_relink",

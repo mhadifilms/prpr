@@ -67,11 +67,11 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mhadifilms/prpr"
-Documentation = "https://mhadifilms.github.io/prpr"
-Repository = "https://github.com/mhadifilms/prpr"
-Issues = "https://github.com/mhadifilms/prpr/issues"
-Changelog = "https://github.com/mhadifilms/prpr/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/mhadifilms/pmr"
+Documentation = "https://mhadifilms.github.io/pmr"
+Repository = "https://github.com/mhadifilms/pmr"
+Issues = "https://github.com/mhadifilms/pmr/issues"
+Changelog = "https://github.com/mhadifilms/pmr/blob/main/CHANGELOG.md"
 
 [project.scripts]
 prpr = "prpr.cli.main:main"

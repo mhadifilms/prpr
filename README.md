@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/mhadifilms/prpr/main/docs/assets/logo.svg" alt="prpr logo" width="140">
+  <img src="https://raw.githubusercontent.com/mhadifilms/pmr/main/docs/assets/logo.svg" alt="prpr logo" width="140">
 </p>
 
 # prpr

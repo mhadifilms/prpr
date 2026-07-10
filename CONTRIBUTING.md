@@ -9,7 +9,7 @@ please read [the parity contract](docs/parity.md) before adding surface.
 ## Setup
 
 ```bash
-git clone https://github.com/mhadifilms/prpr
+git clone https://github.com/mhadifilms/pmr
 cd prpr
 python -m venv .venv
 source .venv/bin/activate

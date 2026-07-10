@@ -24,7 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `footage_interpretation`, `color_label`, `bin_rename`, `smart_bin`,
   `purge_cache` (26.5+), `selection`.
 - **Project**: `scratch_disks`, `ingest`, `color_settings`,
-  `import_sequences`, `import_ae_comps`. **App**: `preference`.
+  `import_sequences`, `import_ae_comps`, sequence `set_settings`. **App**:
+  `preference`.
+- **Host events**: `p.events.subscribe`/`on`/`off` (EventManager —
+  project/sequence/encoder/global events delivered to Python handlers on
+  the bridge thread).
 - **CLI/MCP** commands and tools for the above; `pmr/__main__.py`
   (`python -m pmr`).
 - `scripts/smoke_live.py` full live E2E; `scripts/check_parity.py`

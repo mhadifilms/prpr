@@ -507,7 +507,7 @@ SNIPPETS: dict[str, str] = {
         const seq = await resolveSequence(project, args.sequence);
         const markers = await ppro.Markers.getMarkers(seq);
         const start = secondsToTick(args.seconds || 0);
-        const duration = args.duration_seconds ? secondsToTick(args.duration_seconds) : undefined;
+        const duration = secondsToTick(args.duration_seconds || 0);
         const type = args.marker_type || "Comment";
         runTransaction(project, "pmr: add marker", (add) => {
           add(markers.createAddMarkerAction(args.name || "marker", type, start, duration, args.comments || ""));

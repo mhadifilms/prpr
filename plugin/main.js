@@ -93,7 +93,7 @@ function typeName(obj) {
 // Serialization
 // ---------------------------------------------------------------------------
 
-const MAX_DEPTH = 6;
+const MAX_DEPTH = 32;
 
 // Cheap synchronous properties inlined onto handle refs so the Python side
 // avoids extra round-trips for common value reads. Keyed by constructor name;

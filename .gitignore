@@ -73,3 +73,6 @@ reference/
 
 # Docs
 site/
+
+# UXP developer-tools session artifacts (machine-specific)
+.uxprc

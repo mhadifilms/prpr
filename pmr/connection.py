@@ -186,6 +186,10 @@ def build_ccx(out_path: str | Path | None = None) -> Path:
     out_path = Path(out_path)
     with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for file in sorted(src.rglob("*")):
+            # Skip dev-tools session artifacts and OS cruft — they must not
+            # ship inside the installed plugin.
+            if file.name in (".uxprc", ".DS_Store"):
+                continue
             if file.is_file():
                 zf.write(file, file.relative_to(src))
     return out_path

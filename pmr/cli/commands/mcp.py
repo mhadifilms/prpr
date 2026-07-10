@@ -26,7 +26,6 @@ def _import_mcp_server() -> Any:
     """Import pmr.mcp.server lazily; exit with a clear message if missing."""
     try:
         from ... import mcp as mcp_pkg  # noqa: F401 — ensure the package resolves
-
         from ...mcp import server as mcp_server
     except ImportError as exc:
         typer.echo(
@@ -74,7 +73,7 @@ def _tool_rows(registry: Any) -> list[dict[str, Any]]:
                 "name": getattr(tool, "name", str(tool)),
                 "description": getattr(tool, "description", "") or "",
                 "needs_premiere": getattr(tool, "needs_premiere", True),
-                "input_schema": getattr(tool, "input_schema", None),
+                "input_schema": getattr(tool, "input_schema", getattr(tool, "schema", None)),
             }
         )
     return rows

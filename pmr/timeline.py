@@ -336,6 +336,63 @@ class Timeline:
             {"sequence": self._ref, "in_seconds": in_seconds, "out_seconds": out_seconds},
         )
 
+    def track_update(
+        self,
+        track_index: int,
+        *,
+        track_type: str = "video",
+        mute: bool | None = None,
+        set_name: str | None = None,
+    ) -> dict[str, Any]:
+        """Mute/unmute or rename a track (rename needs Premiere 26.3+)."""
+        return self._p.eval_js(
+            snippet("track_update"),
+            {
+                "sequence": self._ref,
+                "track_index": track_index,
+                "track_type": track_type,
+                "mute": mute,
+                "set_name": set_name,
+            },
+        )
+
+    def create_subsequence(self, *, ignore_track_targeting: bool = True) -> dict[str, Any]:
+        """Create a subsequence from the current in/out selection."""
+        return self._p.eval_js(
+            snippet("subsequence_create"),
+            {"sequence": self._ref, "ignore_track_targeting": ignore_track_targeting},
+        )
+
+    def clone(self) -> dict[str, Any]:
+        """Duplicate this sequence (Premiere names the copy)."""
+        return self._p.eval_js(snippet("sequence_clone"), {"sequence": self._ref})
+
+    def selection(self) -> dict[str, Any]:
+        """The current track-item selection."""
+        return self._p.eval_js(snippet("selection_get"), {"sequence": self._ref})
+
+    def select(
+        self,
+        *,
+        name: str | None = None,
+        name_contains: str | None = None,
+        track_type: str = "video",
+        track_index: int | None = None,
+        clear: bool = False,
+    ) -> dict[str, Any]:
+        """Set (or clear) the sequence selection by clip filters."""
+        return self._p.eval_js(
+            snippet("selection_set"),
+            {
+                "sequence": self._ref,
+                "name": name,
+                "name_contains": name_contains,
+                "track_type": track_type,
+                "track_index": track_index,
+                "clear": clear,
+            },
+        )
+
     # -- transport ------------------------------------------------------
 
     @property
@@ -420,6 +477,15 @@ class TimelineNamespace:
 
     def delete(self, name: str) -> dict[str, Any]:
         return self._p.eval_js(snippet("sequence_delete"), {"sequence": name})
+
+    def create_from_media(
+        self, name: str, items: list[str], *, bin: str | None = None
+    ) -> Timeline:
+        """Create a sequence pre-populated from project items (by name)."""
+        info = self._p.eval_js(
+            snippet("sequence_from_media"), {"name": name, "items": items, "bin": bin}
+        )
+        return Timeline(self._p, name, info)
 
 
 __all__ = ["ItemQuery", "Timeline", "TimelineItem", "TimelineNamespace"]

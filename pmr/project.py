@@ -65,6 +65,49 @@ class Project:
     def close(self, *, prompt_if_dirty: bool = False) -> dict[str, Any]:
         return self._p.eval_js(snippet("project_close"), {"prompt_if_dirty": prompt_if_dirty})
 
+    def scratch_disks(
+        self, *, set_type: str | None = None, set_path: str | None = None
+    ) -> dict[str, Any]:
+        """Read (or set one of) the project's scratch disk paths.
+
+        Types: capture, video_preview, audio_preview, auto_save,
+        ccl_libraries, capsule_media."""
+        return self._p.eval_js(
+            snippet("scratch_disks"), {"set_type": set_type, "set_path": set_path}
+        )
+
+    def ingest(self, enabled: bool | None = None) -> dict[str, Any]:
+        """Read (or set) whether ingest is enabled for this project."""
+        return self._p.eval_js(snippet("ingest_settings"), {"enabled": enabled})
+
+    def color_settings(self) -> dict[str, Any]:
+        """Project color settings (graphics white luminance)."""
+        return self._p.eval_js(snippet("color_settings"))
+
+    def import_sequences(
+        self, project_path: str, sequence_guids: list[str] | None = None
+    ) -> dict[str, Any]:
+        """Import sequences from another .prproj into this project."""
+        return self._p.eval_js(
+            snippet("import_sequences"),
+            {"project_path": str(project_path), "sequence_guids": sequence_guids},
+            timeout=600.0,
+        )
+
+    def import_ae_comps(
+        self,
+        aep_path: str,
+        comp_names: list[str] | None = None,
+        *,
+        bin: str | None = None,
+    ) -> dict[str, Any]:
+        """Import After Effects comps (all of them when ``comp_names`` is None)."""
+        return self._p.eval_js(
+            snippet("ae_import"),
+            {"aep_path": str(aep_path), "comp_names": comp_names, "bin": bin},
+            timeout=600.0,
+        )
+
     def to_dict(self) -> dict[str, Any]:
         return dict(self._info)
 

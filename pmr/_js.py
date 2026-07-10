@@ -1186,6 +1186,243 @@ SNIPPETS: dict[str, str] = {
         throw new Error(`Unknown source monitor op: ${op}`);
     """),
     # ------------------------------------------------------------------
+    # App preferences / project settings
+    # ------------------------------------------------------------------
+    "app_preference": _s("""
+        if (args.set) {
+          const flag = args.persistent === false
+            ? ppro.AppPreference.PROPERTY_NON_PERSISTENT
+            : ppro.AppPreference.PROPERTY_PERSISTENT;
+          const ok = ppro.AppPreference.setValue(args.key, args.value, flag);
+          if (!ok) throw new Error(`Could not set preference: ${args.key}`);
+        }
+        return { key: args.key, value: ppro.AppPreference.getValue(args.key) };
+    """),
+    "scratch_disks": _s("""
+        const project = await activeProject();
+        const settings = await ppro.ProjectSettings.getScratchDiskSettings(project);
+        const types = {
+          capture: ppro.ScratchDiskSettings.FOLDERTYPE_CAPTURE,
+          video_preview: ppro.ScratchDiskSettings.FOLDERTYPE_VIDEO_PREVIEW,
+          audio_preview: ppro.ScratchDiskSettings.FOLDERTYPE_AUDIO_PREVIEW,
+          auto_save: ppro.ScratchDiskSettings.FOLDERTYPE_AUTO_SAVE,
+          ccl_libraries: ppro.ScratchDiskSettings.FOLDERTYPE_CCL_LIBRARIES,
+          capsule_media: ppro.ScratchDiskSettings.FOLDERTYPE_CAPSULE_MEDIA,
+        };
+        if (args.set_type && args.set_path) {
+          const type = types[args.set_type];
+          if (type === undefined) throw new Error(`Unknown scratch disk type: ${args.set_type}`);
+          settings.setScratchDiskPath(type, args.set_path);
+          runTransaction(project, "pmr: scratch disks", (add) => {
+            add(ppro.ProjectSettings.createSetScratchDiskSettingsAction(project, settings));
+          });
+        }
+        const out = {};
+        for (const [key, type] of Object.entries(types)) {
+          try { out[key] = settings.getScratchDiskPath(type); } catch (e) { out[key] = null; }
+        }
+        return out;
+    """),
+    "ingest_settings": _s("""
+        const project = await activeProject();
+        const settings = await ppro.ProjectSettings.getIngestSettings(project);
+        if (args.enabled !== undefined && args.enabled !== null) {
+          await settings.setIngestEnabled(!!args.enabled);
+          runTransaction(project, "pmr: ingest", (add) => {
+            add(ppro.ProjectSettings.createSetIngestSettingsAction(project, settings));
+          });
+        }
+        return { ingest_enabled: await settings.getIsIngestEnabled() };
+    """),
+    "color_settings": _s("""
+        const project = await activeProject();
+        const settings = await project.getColorSettings();
+        return {
+          graphics_white_luminance: await settings.getGraphicsWhiteLuminance(),
+          supported_graphics_white_luminances: await settings.getSupportedGraphicsWhiteLuminances(),
+        };
+    """),
+    "footage_interpretation": _s("""
+        const project = await activeProject();
+        const item = await findProjectItem(project, { name: args.name, path: args.path });
+        if (!item) throw new Error(`Project item not found: ${args.name || args.path}`);
+        const clip = ppro.ClipProjectItem.cast(item);
+        const fi = await clip.getFootageInterpretation();
+        if (args.set) {
+          const setters = {
+            frame_rate: (v) => fi.setFrameRate(Number(v)),
+            pixel_aspect_ratio: (v) => fi.setPixelAspectRatio(Number(v)),
+            field_type: (v) => fi.setFieldType(Number(v)),
+            remove_pulldown: (v) => fi.setRemovePullDown(!!v),
+            alpha_usage: (v) => fi.setAlphaUsage(Number(v)),
+            ignore_alpha: (v) => fi.setIgnoreAlpha(!!v),
+            invert_alpha: (v) => fi.setInvertAlpha(!!v),
+            input_lut_id: (v) => fi.setInputLUTID(String(v)),
+          };
+          for (const [key, value] of Object.entries(args.set)) {
+            const setter = setters[key];
+            if (!setter) throw new Error(`Unknown footage interpretation key: ${key}`);
+            setter(value);
+          }
+          runTransaction(project, "pmr: footage interpretation", (add) => {
+            add(clip.createSetFootageInterpretationAction(fi));
+          });
+        }
+        return {
+          clip: item.name,
+          frame_rate: fi.getFrameRate(),
+          pixel_aspect_ratio: fi.getPixelAspectRatio(),
+          field_type: fi.getFieldType(),
+          remove_pulldown: fi.getRemovePullDown(),
+          alpha_usage: fi.getAlphaUsage(),
+          ignore_alpha: fi.getIgnoreAlpha(),
+          invert_alpha: fi.getInvertAlpha(),
+          input_lut_id: fi.getInputLUTID(),
+        };
+    """),
+    # ------------------------------------------------------------------
+    # Tracks
+    # ------------------------------------------------------------------
+    "track_update": _s("""
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        const kind = args.track_type || "video";
+        const tracks = await gatherTracks(project, seq, kind);
+        if (args.track_index === undefined || args.track_index === null || !tracks[args.track_index]) {
+          throw new Error(`Track not found: ${kind} #${args.track_index}`);
+        }
+        const track = tracks[args.track_index];
+        if (args.mute !== undefined && args.mute !== null) {
+          await track.setMute(!!args.mute);
+        }
+        if (args.set_name !== undefined && args.set_name !== null) {
+          if (typeof track.createSetNameAction !== "function") {
+            throw new Error("Track rename needs Premiere 26.3+");
+          }
+          runTransaction(project, "pmr: rename track", (add) => {
+            add(track.createSetNameAction(args.set_name));
+          });
+        }
+        return { name: track.name, id: track.id, muted: await track.isMuted() };
+    """),
+    # ------------------------------------------------------------------
+    # Advanced project ops
+    # ------------------------------------------------------------------
+    "sequence_from_media": _s("""
+        const project = await activeProject();
+        const clips = [];
+        for (const ref of args.items || []) {
+          const item = await findProjectItem(project, typeof ref === "string" ? { name: ref } : ref);
+          if (!item) throw new Error(`Project item not found: ${JSON.stringify(ref)}`);
+          clips.push(ppro.ClipProjectItem.cast(item));
+        }
+        let targetBin;
+        if (args.bin) {
+          targetBin = ppro.ProjectItem.cast(await findBin(project, args.bin, true));
+        }
+        const seq = await project.createSequenceFromMedia(args.name, clips, targetBin);
+        if (!seq) throw new Error(`createSequenceFromMedia failed for: ${args.name}`);
+        try { await project.setActiveSequence(seq); } catch (e) {}
+        return { name: seq.name, guid: seq.guid ? seq.guid.toString() : null, clips: clips.length };
+    """),
+    "ae_import": _s("""
+        const project = await activeProject();
+        let targetBin;
+        if (args.bin) {
+          targetBin = ppro.ProjectItem.cast(await findBin(project, args.bin, true));
+        }
+        let ok;
+        if (args.comp_names && args.comp_names.length) {
+          ok = await project.importAEComps(args.aep_path, args.comp_names, targetBin);
+        } else {
+          ok = await project.importAllAEComps(args.aep_path, targetBin);
+        }
+        if (!ok) throw new Error(`AE comp import failed for: ${args.aep_path}`);
+        return { imported: args.aep_path, comps: args.comp_names || "all" };
+    """),
+    "import_sequences": _s("""
+        const project = await activeProject();
+        const ids = (args.sequence_guids || []).map((g) => ppro.Guid.fromString(g));
+        const ok = await project.importSequences(args.project_path, ids.length ? ids : undefined);
+        if (!ok) throw new Error(`importSequences failed for: ${args.project_path}`);
+        return { imported: args.project_path };
+    """),
+    "subsequence_create": _s("""
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        const sub = await seq.createSubsequence(args.ignore_track_targeting !== false);
+        if (!sub) throw new Error("createSubsequence failed");
+        return { name: sub.name, guid: sub.guid ? sub.guid.toString() : null };
+    """),
+    "sequence_clone": _s("""
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        runTransaction(project, "pmr: clone sequence", (add) => {
+          add(seq.createCloneAction());
+        });
+        const names = [];
+        for (const s of await project.getSequences()) names.push(s.name);
+        return { cloned: seq.name, sequences: names };
+    """),
+    # ------------------------------------------------------------------
+    # Selection
+    # ------------------------------------------------------------------
+    "selection_get": _s("""
+        const project = await activeProject();
+        if (args.scope === "project") {
+          const selection = await ppro.ProjectUtils.getSelection(project);
+          const items = await selection.getItems();
+          const out = [];
+          for (const item of items) out.push({ name: item.name, type: item.type });
+          return { scope: "project", items: out };
+        }
+        const seq = await resolveSequence(project, args.sequence);
+        const selection = await seq.getSelection();
+        const items = await selection.getTrackItems();
+        const out = [];
+        for (const item of items) {
+          const entry = {};
+          try { entry.name = await item.getName(); } catch (e) {}
+          try { entry.track_index = await item.getTrackIndex(); } catch (e) {}
+          try { entry.start = tt(await item.getStartTime()); } catch (e) {}
+          out.push(entry);
+        }
+        return { scope: "sequence", items: out };
+    """),
+    "selection_set": _s("""
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        if (args.clear) {
+          await seq.clearSelection();
+          return { cleared: true };
+        }
+        const tracks = await gatherTracks(project, seq, args.track_type || "video");
+        const perTrack = trackItemsSync(project, tracks, false);
+        const matched = [];
+        for (let i = 0; i < perTrack.length; i++) {
+          if (args.track_index !== undefined && args.track_index !== null && i !== args.track_index) continue;
+          for (const item of perTrack[i]) {
+            let name = null;
+            try { name = await item.getName(); } catch (e) {}
+            if (args.name && name !== args.name) continue;
+            if (args.name_contains && (!name || !name.includes(args.name_contains))) continue;
+            matched.push(item);
+          }
+        }
+        let selection = null;
+        ppro.TrackItemSelection.createEmptySelection((sel) => { selection = sel; });
+        for (const item of matched) selection.addItem(item, true);
+        await seq.setSelection(selection);
+        return { selected: matched.length };
+    """),
+    "purge_cache": _s("""
+        if (typeof ppro.MediaManager === "undefined" || typeof ppro.MediaManager.purgeMediaCache !== "function") {
+          throw new Error("MediaManager.purgeMediaCache unavailable in this Premiere version (needs 26.5+)");
+        }
+        const ok = await ppro.MediaManager.purgeMediaCache();
+        return { purged: !!ok };
+    """),
+    # ------------------------------------------------------------------
     # Properties (per-project/sequence key-value store)
     # ------------------------------------------------------------------
     "properties_get": _s("""

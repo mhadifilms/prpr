@@ -206,6 +206,28 @@ class MediaNamespace:
             snippet("transcript_import"), {"name": name, "path": path, "json": json_text}
         )
 
+    def footage_interpretation(
+        self,
+        *,
+        name: str | None = None,
+        path: str | None = None,
+        set: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Read (or update) a clip's footage interpretation. Settable keys:
+        frame_rate, pixel_aspect_ratio, field_type, remove_pulldown,
+        alpha_usage, ignore_alpha, invert_alpha, input_lut_id."""
+        return self._p.eval_js(
+            snippet("footage_interpretation"), {"name": name, "path": path, "set": set}
+        )
+
+    def purge_cache(self) -> dict[str, Any]:
+        """Purge Premiere's media cache (26.5+)."""
+        return self._p.eval_js(snippet("purge_cache"), timeout=300.0)
+
+    def selection(self) -> dict[str, Any]:
+        """Project-panel selection (the items selected in the project view)."""
+        return self._p.eval_js(snippet("selection_get"), {"scope": "project"})
+
     def create_subclip(
         self,
         subclip_name: str,

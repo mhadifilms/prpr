@@ -33,6 +33,20 @@ NO_TOOL_EXPECTED = {
     "clip.move",  # folded into clip_update
     "clip.rename",  # folded into clip_update
     "clip.where",
+    # Library-level surface added in 0.2 (CLI/MCP wiring tracked separately):
+    "app.preference",
+    "project.scratch_disks",
+    "project.ingest",
+    "project.color_settings",
+    "project.import_sequences",
+    "project.import_ae_comps",
+    "media.footage_interpretation",
+    "media.purge_cache",
+    "timeline.track_update",
+    "timeline.subsequence",
+    "timeline.clone",
+    "timeline.create_from_media",
+    "timeline.selection",
     "media.proxy",  # library-level, per-clip
     "media.subclip",  # library-level
     "timeline.set_in_out",  # library-level

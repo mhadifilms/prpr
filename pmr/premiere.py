@@ -68,6 +68,16 @@ class App:
         """Ask Premiere Pro to quit."""
         return connection.quit_premiere()
 
+    def preference(self, key: str, value: Any = None, *, persistent: bool = True) -> dict[str, Any]:
+        """Read (or set, when ``value`` is given) an application preference.
+
+        Known keys: AppPreference constants like ``AutoPeakGeneration`` — see
+        ``ppro.AppPreference.KEY_*`` (Adobe documents only a few)."""
+        payload: dict[str, Any] = {"key": key}
+        if value is not None:
+            payload.update({"set": True, "value": value, "persistent": persistent})
+        return self._p.eval_js(snippet("app_preference"), payload)
+
 
 class Premiere:
     """A live handle on Adobe Premiere Pro via the pmr bridge plugin."""

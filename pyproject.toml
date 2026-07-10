@@ -136,6 +136,7 @@ module = [
     "pmr.connection",
     "pmr.daemon",
     "pmr.effects",
+    "pmr.events",
     "pmr.interchange",
     "pmr.media",
     "pmr.premiere",

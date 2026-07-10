@@ -21,6 +21,7 @@ from . import connection, errors
 from ._js import snippet
 from .bridge import Bridge
 from .effects import EffectsNamespace
+from .events import EventsNamespace
 from .media import MediaNamespace
 from .project import ProjectNamespace
 from .render import RenderNamespace
@@ -102,6 +103,7 @@ class Premiere:
         self._media = MediaNamespace(self)
         self._render = RenderNamespace(self)
         self._effects = EffectsNamespace(self)
+        self._events = EventsNamespace(self)
 
     # ------------------------------------------------------------------
     # Namespaces
@@ -134,6 +136,10 @@ class Premiere:
     @property
     def effects(self) -> EffectsNamespace:
         return self._effects
+
+    @property
+    def events(self) -> EventsNamespace:
+        return self._events
 
     # ------------------------------------------------------------------
     # Core operations

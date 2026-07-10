@@ -23,6 +23,7 @@ from . import (
 from .bridge import Bridge, RemoteRef
 from .connection import connect, install_plugin, installed_apps, plugin_installed
 from .effects import EffectsNamespace
+from .events import EventsNamespace
 from .media import MediaNamespace, media_kind_for_path, scan_media_files
 from .premiere import App, Premiere
 from .project import Project, ProjectNamespace
@@ -38,6 +39,7 @@ __all__ = [
     "App",
     "Bridge",
     "EffectsNamespace",
+    "EventsNamespace",
     "ItemQuery",
     "MediaNamespace",
     "Premiere",

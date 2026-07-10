@@ -87,6 +87,7 @@ NO_TOOL_EXPECTED = {
     "project.create",
     "project.load",
     "eval",
+    "events.subscribe",  # library-level (background-thread callbacks; not an RPC tool)
 }
 
 

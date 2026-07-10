@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/mhadifilms/pmr/main/assets/logo.png" alt="pmr logo" width="140">
+  <img src="https://raw.githubusercontent.com/mhadifilms/pmr/main/assets/logo.svg" alt="pmr logo" width="140">
 </p>
 
 # pmr

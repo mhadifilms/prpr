@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Transforms & keyframes**: `effects.set_param` writes any component
+  parameter (Motion/Opacity/effect params) with `PointF`/`Color`
+  coercion; pass `at_seconds` to write a keyframe. `timeline.keyframes`
+  lists keyframe times for a parameter. (transforms + keyframes
+  live-validated)
+- **Timeline**: `track_update` (mute + rename), `clone`,
+  `create_subsequence`, `set_in_out`, `work_area` (26.5+),
+  `insert_mogrt`, `scene_edit_detection`, `move_marker`,
+  `create_from_media`, `selection` (read + clear — `setSelection`
+  crashes Premiere 26.5 beta and is refused rather than crashing the
+  host).
+- **Media**: `attach_proxy`, `create_subclip` (26.3+),
+  `transcript_export`/`transcript_import` (26.3+),
+  `footage_interpretation`, `color_label`, `bin_rename`, `smart_bin`,
+  `purge_cache` (26.5+), `selection`.
+- **Project**: `scratch_disks`, `ingest`, `color_settings`,
+  `import_sequences`, `import_ae_comps`. **App**: `preference`.
+- **CLI/MCP** commands and tools for the above; `pmr/__main__.py`
+  (`python -m pmr`).
+- `scripts/smoke_live.py` full live E2E; `scripts/check_parity.py`
+  cross-repo status/key-symmetry check. mypy (strict) added to CI.
+- Parity matrix grown to 106 operations, synced with dvr.
+
+### Changed
+- Bridge object serialization depth 6 → 32 (nested inspect payloads).
+- Manifest `network.domains` → `"all"` (UXP 26.5 rejects explicit
+  `ws://` entries).
+- Daemon: `--wait`/`watch` commands forward through the daemon instead
+  of bypassing it (one-port-owner model), and the bypass parser no
+  longer mistakes an option value for the command.
+
 ## [0.1.0] - 2026-07-10
 
 Initial release. Structural sibling of [dvr](https://github.com/mhadifilms/dvr) for Adobe Premiere Pro.

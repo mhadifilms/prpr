@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://mhadifilms.github.io/prpr/</loc>
+         <loc>https://mhadifilms.github.io/pmr/</loc>
          <lastmod>2026-07-10</lastmod>
     </url>
     <url>
-         <loc>https://mhadifilms.github.io/prpr/cli/</loc>
+         <loc>https://mhadifilms.github.io/pmr/cli/</loc>
          <lastmod>2026-07-10</lastmod>
     </url>
     <url>
-         <loc>https://mhadifilms.github.io/prpr/cookbook/</loc>
+         <loc>https://mhadifilms.github.io/pmr/cookbook/</loc>
          <lastmod>2026-07-10</lastmod>
     </url>
     <url>
-         <loc>https://mhadifilms.github.io/prpr/daemon/</loc>
+         <loc>https://mhadifilms.github.io/pmr/daemon/</loc>
          <lastmod>2026-07-10</lastmod>
     </url>
     <url>
-         <loc>https://mhadifilms.github.io/prpr/getting-started/</loc>
+         <loc>https://mhadifilms.github.io/pmr/getting-started/</loc>
          <lastmod>2026-07-10</lastmod>
     </url>
     <url>
-         <loc>https://mhadifilms.github.io/prpr/library/</loc>
+         <loc>https://mhadifilms.github.io/pmr/library/</loc>
          <lastmod>2026-07-10</lastmod>
     </url>
     <url>
-         <loc>https://mhadifilms.github.io/prpr/mcp/</loc>
+         <loc>https://mhadifilms.github.io/pmr/mcp/</loc>
          <lastmod>2026-07-10</lastmod>
     </url>
     <url>
-         <loc>https://mhadifilms.github.io/prpr/parity/</loc>
+         <loc>https://mhadifilms.github.io/pmr/parity/</loc>
          <lastmod>2026-07-10</lastmod>
     </url>
     <url>
-         <loc>https://mhadifilms.github.io/prpr/spec/</loc>
+         <loc>https://mhadifilms.github.io/pmr/spec/</loc>
          <lastmod>2026-07-10</lastmod>
     </url>
     <url>
-         <loc>https://mhadifilms.github.io/prpr/concepts/architecture/</loc>
+         <loc>https://mhadifilms.github.io/pmr/concepts/architecture/</loc>
          <lastmod>2026-07-10</lastmod>
     </url>
 </urlset>

@@ -6,6 +6,7 @@ from typing import Annotated
 
 import typer
 
+from ...project import Project
 from .. import output
 from ..session import premiere_from_ctx as _premiere
 
@@ -90,3 +91,87 @@ def save(ctx: typer.Context) -> None:
         raise typer.Exit(1)
     proj.save()
     output.emit({"saved": proj.name}, fmt=ctx.obj["format"])
+
+
+def _current(ctx: typer.Context) -> Project:
+    p = _premiere(ctx)
+    proj = p.project.current
+    if proj is None:
+        typer.echo("No project is currently open.", err=True)
+        raise typer.Exit(1)
+    return proj
+
+
+@app.command("scratch-disks")
+def scratch_disks_cmd(
+    ctx: typer.Context,
+    set_type: Annotated[
+        str | None,
+        typer.Option(
+            "--set-type",
+            help="Scratch disk type to set (capture, video_preview, audio_preview, "
+            "auto_save, ccl_libraries, capsule_media).",
+        ),
+    ] = None,
+    set_path: Annotated[
+        str | None, typer.Option("--set-path", help="New path for --set-type.")
+    ] = None,
+) -> None:
+    """Read or set the current project's scratch disk paths."""
+    proj = _current(ctx)
+    result = proj.scratch_disks(set_type=set_type, set_path=set_path)
+    output.emit(result, fmt=ctx.obj["format"])
+
+
+@app.command("ingest")
+def ingest_cmd(
+    ctx: typer.Context,
+    enabled: Annotated[
+        bool | None,
+        typer.Option("--enable/--disable", help="Enable or disable ingest; omit to read."),
+    ] = None,
+) -> None:
+    """Read or set whether ingest is enabled for the current project."""
+    proj = _current(ctx)
+    result = proj.ingest(enabled)
+    output.emit(result, fmt=ctx.obj["format"])
+
+
+@app.command("color-settings")
+def color_settings_cmd(ctx: typer.Context) -> None:
+    """Read the current project's color settings."""
+    proj = _current(ctx)
+    output.emit(proj.color_settings(), fmt=ctx.obj["format"])
+
+
+@app.command("import-sequences")
+def import_sequences_cmd(
+    ctx: typer.Context,
+    project_path: Annotated[str, typer.Argument(help="Source .prproj to import from.")],
+    guid: Annotated[
+        list[str] | None,
+        typer.Option("--guid", help="Sequence GUID to import (repeatable). Default: all."),
+    ] = None,
+) -> None:
+    """Import sequences from another .prproj into the current project."""
+    proj = _current(ctx)
+    result = proj.import_sequences(project_path, guid or None)
+    output.emit(result, fmt=ctx.obj["format"])
+
+
+@app.command("import-ae")
+def import_ae_cmd(
+    ctx: typer.Context,
+    aep_path: Annotated[str, typer.Argument(help="Source .aep to import comps from.")],
+    comp: Annotated[
+        list[str] | None,
+        typer.Option("--comp", help="Comp name to import (repeatable). Default: all."),
+    ] = None,
+    bin: Annotated[
+        str | None, typer.Option("--bin", "-b", help="Target bin for imported comps.")
+    ] = None,
+) -> None:
+    """Import After Effects comps into the current project."""
+    proj = _current(ctx)
+    result = proj.import_ae_comps(aep_path, comp or None, bin=bin)
+    output.emit(result, fmt=ctx.obj["format"])

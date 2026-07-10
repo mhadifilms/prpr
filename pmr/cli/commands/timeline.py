@@ -237,6 +237,43 @@ def mark(
     output.emit(result, fmt=ctx.obj["format"])
 
 
+@app.command("marker-move")
+def marker_move_cmd(
+    ctx: typer.Context,
+    to: Annotated[float, typer.Option("--to", help="New marker position in seconds.")],
+    name: Annotated[str | None, typer.Option("--name", help="Marker name to match.")] = None,
+    from_: Annotated[
+        float | None,
+        typer.Option("--from", help="Current marker position (seconds) to match."),
+    ] = None,
+    timeline: Annotated[str | None, typer.Option("--timeline", help="Sequence name.")] = None,
+) -> None:
+    """Move a marker (matched by name and/or position) to a new time."""
+    p = _premiere(ctx)
+    tl = Timeline(p, timeline) if timeline else _current(ctx)
+    result = tl.move_marker(to, name=name, from_seconds=from_)
+    output.emit(result, fmt=ctx.obj["format"])
+
+
+@app.command("keyframes")
+def keyframes_cmd(
+    ctx: typer.Context,
+    component: Annotated[str, typer.Argument(help="Component display or match name.")],
+    param: Annotated[str, typer.Argument(help="Parameter display name.")],
+    clip: Annotated[str | None, typer.Option("--clip", help="Limit to one clip.")] = None,
+    track_index: Annotated[
+        int | None, typer.Option("--track-index", help="0-based track index.")
+    ] = None,
+    kind: Annotated[str, typer.Option("--kind", help="video | audio.")] = "video",
+    timeline: Annotated[str | None, typer.Option("--timeline", help="Sequence name.")] = None,
+) -> None:
+    """List keyframe times for a clip's component parameter."""
+    p = _premiere(ctx)
+    tl = Timeline(p, timeline) if timeline else _current(ctx)
+    result = tl.keyframes(component, param, clip_name=clip, track_index=track_index, kind=kind)
+    output.emit(result, fmt=ctx.obj["format"])
+
+
 @app.command("markers")
 def markers(ctx: typer.Context) -> None:
     """List markers on the active sequence."""

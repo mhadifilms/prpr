@@ -109,6 +109,85 @@ def import_files(
     output.emit(result, fmt=ctx.obj["format"], headline=f"imported into {bin or 'root'}")
 
 
+@app.command("color-label")
+def color_label_cmd(
+    ctx: typer.Context,
+    name: Annotated[str, typer.Argument(help="Project-item name.")],
+    path: Annotated[
+        str | None, typer.Option("--path", help="Media path (instead of name).")
+    ] = None,
+    set_index: Annotated[
+        int | None,
+        typer.Option("--set", help="Color label index 0-14 to set; omit to read."),
+    ] = None,
+) -> None:
+    """Read or set a project-panel item's color label (0-14)."""
+    p = _premiere(ctx)
+    result = p.media.color_label(name=name, path=path, set_index=set_index)
+    output.emit(result, fmt=ctx.obj["format"])
+
+
+@app.command("bin-rename")
+def bin_rename_cmd(
+    ctx: typer.Context,
+    path: Annotated[str, typer.Argument(help="Current bin name or `A/B` path.")],
+    new_name: Annotated[str, typer.Argument(help="New bin name.")],
+) -> None:
+    """Rename a bin identified by its current path."""
+    p = _premiere(ctx)
+    result = p.media.bin_rename(path, new_name)
+    output.emit(result, fmt=ctx.obj["format"])
+
+
+@app.command("smart-bin")
+def smart_bin_cmd(
+    ctx: typer.Context,
+    name: Annotated[str, typer.Argument(help="Smart bin name.")],
+    query: Annotated[str, typer.Argument(help="Search query.")],
+) -> None:
+    """Create a smart bin at the project root with a search query."""
+    p = _premiere(ctx)
+    result = p.media.smart_bin(name, query)
+    output.emit(result, fmt=ctx.obj["format"])
+
+
+@app.command("footage")
+def footage_cmd(
+    ctx: typer.Context,
+    name: Annotated[str, typer.Argument(help="Project-item name.")],
+    path: Annotated[
+        str | None, typer.Option("--path", help="Media path (instead of name).")
+    ] = None,
+    set_: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--set",
+            help="KEY=VALUE interpretation override (repeatable); omit to read.",
+        ),
+    ] = None,
+) -> None:
+    """Read or update a clip's footage interpretation."""
+    p = _premiere(ctx)
+    updates: dict[str, str] | None = None
+    if set_:
+        updates = {}
+        for pair in set_:
+            if "=" not in pair:
+                raise typer.BadParameter(f"--set expects KEY=VALUE, got {pair!r}")
+            key, value = pair.split("=", 1)
+            updates[key.strip()] = value.strip()
+    result = p.media.footage_interpretation(name=name, path=path, set=updates)
+    output.emit(result, fmt=ctx.obj["format"])
+
+
+@app.command("purge-cache")
+def purge_cache_cmd(ctx: typer.Context) -> None:
+    """Purge Premiere's media cache (Premiere 26.5+)."""
+    p = _premiere(ctx)
+    result = p.media.purge_cache()
+    output.emit(result, fmt=ctx.obj["format"])
+
+
 @app.command("move")
 def move(
     ctx: typer.Context,

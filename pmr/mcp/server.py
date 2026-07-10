@@ -766,9 +766,13 @@ def _h_media_purge_cache(ctx: _Context, _args: dict[str, Any]) -> dict[str, Any]
 
 
 def _h_project_scratch_disks(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
-    return ctx.premiere().project.require_current().scratch_disks(
-        set_type=args.get("set_type"),
-        set_path=args.get("set_path"),
+    return (
+        ctx.premiere()
+        .project.require_current()
+        .scratch_disks(
+            set_type=args.get("set_type"),
+            set_path=args.get("set_path"),
+        )
     )
 
 
@@ -781,22 +785,30 @@ def _h_project_color_settings(ctx: _Context, _args: dict[str, Any]) -> dict[str,
 
 
 def _h_project_import_sequences(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
-    return ctx.premiere().project.require_current().import_sequences(
-        args["project_path"],
-        args.get("sequence_guids"),
+    return (
+        ctx.premiere()
+        .project.require_current()
+        .import_sequences(
+            args["project_path"],
+            args.get("sequence_guids"),
+        )
     )
 
 
 def _h_project_import_ae_comps(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
-    return ctx.premiere().project.require_current().import_ae_comps(
-        args["aep_path"],
-        args.get("comp_names"),
-        bin=args.get("bin"),
+    return (
+        ctx.premiere()
+        .project.require_current()
+        .import_ae_comps(
+            args["aep_path"],
+            args.get("comp_names"),
+            bin=args.get("bin"),
+        )
     )
 
 
 def _h_app_preference(ctx: _Context, args: dict[str, Any]) -> dict[str, Any]:
-    return ctx.premiere().preference(
+    return ctx.premiere().app.preference(
         args["key"],
         args.get("value"),
         persistent=bool(args.get("persistent", True)),
@@ -1223,10 +1235,7 @@ def build_registry() -> list[_ToolSpec]:
         ),
         _ToolSpec(
             name="project_color_settings",
-            description=(
-                "Read the current project's color settings (graphics white "
-                "luminance)."
-            ),
+            description=("Read the current project's color settings (graphics white luminance)."),
             handler=_h_project_color_settings,
         ),
         _ToolSpec(
@@ -1882,9 +1891,7 @@ def build_registry() -> list[_ToolSpec]:
         ),
         _ToolSpec(
             name="timeline_in_out",
-            description=(
-                "Read (with no args) or set a sequence's in/out points (seconds)."
-            ),
+            description=("Read (with no args) or set a sequence's in/out points (seconds)."),
             schema=_schema(
                 {
                     "in_seconds": {"type": "number"},

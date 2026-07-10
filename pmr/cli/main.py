@@ -119,6 +119,25 @@ def ping(ctx: typer.Context) -> None:
         )
 
 
+@app.command("preference")
+def preference(
+    ctx: typer.Context,
+    key: Annotated[str, typer.Argument(help="Preference key.")],
+    value: Annotated[
+        str | None,
+        typer.Argument(help="Value to set; omit to read the current value."),
+    ] = None,
+    persistent: Annotated[
+        bool,
+        typer.Option("--persistent/--no-persistent", help="Write to the persistent store."),
+    ] = True,
+) -> None:
+    """Read or set a Premiere application preference by key."""
+    with _premiere_session(ctx) as p:
+        result = p.app.preference(key, value, persistent=persistent)
+        output.emit(result, fmt=ctx.obj["format"])
+
+
 @app.command("page")
 def page(
     ctx: typer.Context,

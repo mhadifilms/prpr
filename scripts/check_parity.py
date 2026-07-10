@@ -42,17 +42,11 @@ NO_TOOL_EXPECTED = {
     "project.import_ae_comps",
     "media.footage_interpretation",
     "media.purge_cache",
-    "timeline.track_update",
+    "timeline.track_update",  # tool name is timeline_track, not timeline_track_update
     "timeline.subsequence",
     "timeline.clone",
     "timeline.create_from_media",
     "timeline.selection",
-    "timeline.work_area",
-    "timeline.keyframes",
-    "media.color_label",
-    "media.bin_rename",
-    "media.smart_bin",
-    "marker.move",
     "media.proxy",  # library-level, per-clip
     "media.subclip",  # library-level
     "timeline.set_in_out",  # library-level

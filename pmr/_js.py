@@ -745,6 +745,128 @@ SNIPPETS: dict[str, str] = {
         });
         return { updated: updates.length, names: updates.map((u) => u.name) };
     """),
+    "proxy_attach": _s("""
+        const project = await activeProject();
+        const item = await findProjectItem(project, { name: args.name, path: args.path });
+        if (!item) throw new Error(`Project item not found: ${args.name || args.path}`);
+        const clip = ppro.ClipProjectItem.cast(item);
+        const can = await clip.canProxy();
+        if (!can) throw new Error(`Clip cannot take a proxy: ${item.name}`);
+        const ok = await clip.attachProxy(args.proxy_path, !!args.is_hi_res);
+        if (!ok) throw new Error("attachProxy returned false");
+        return { attached: args.proxy_path, clip: item.name, has_proxy: await clip.hasProxy() };
+    """),
+    "transcript_export": _s("""
+        if (typeof ppro.Transcript === "undefined") {
+          throw new Error("Transcript API unavailable in this Premiere version (needs 26.3+)");
+        }
+        const project = await activeProject();
+        const item = await findProjectItem(project, { name: args.name, path: args.path });
+        if (!item) throw new Error(`Project item not found: ${args.name || args.path}`);
+        const clip = ppro.ClipProjectItem.cast(item);
+        if (typeof ppro.Transcript.hasTranscript === "function") {
+          const has = await ppro.Transcript.hasTranscript(clip);
+          if (!has) return { clip: item.name, has_transcript: false, transcript: null };
+        }
+        const json = await ppro.Transcript.exportToJSON(clip);
+        return { clip: item.name, has_transcript: true, transcript: json };
+    """),
+    "transcript_import": _s("""
+        if (typeof ppro.Transcript === "undefined") {
+          throw new Error("Transcript API unavailable in this Premiere version (needs 26.3+)");
+        }
+        const project = await activeProject();
+        const item = await findProjectItem(project, { name: args.name, path: args.path });
+        if (!item) throw new Error(`Project item not found: ${args.name || args.path}`);
+        const clip = ppro.ClipProjectItem.cast(item);
+        const segments = ppro.Transcript.importFromJSON(args.json);
+        if (!segments) throw new Error("Could not parse transcript JSON");
+        runTransaction(project, "pmr: import transcript", (add) => {
+          add(ppro.Transcript.createImportTextSegmentsAction(segments, clip));
+        });
+        return { imported: item.name };
+    """),
+    "mogrt_insert": _s("""
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        const editor = ppro.SequenceEditor.getEditor(seq);
+        let atSeconds = args.seconds;
+        if (atSeconds === undefined || atSeconds === null) {
+          const end = await seq.getEndTime();
+          atSeconds = end ? end.seconds : 0;
+        }
+        const items = editor.insertMogrtFromPath(
+          args.path, secondsToTick(atSeconds), args.video_track ?? 0, args.audio_track ?? 0
+        );
+        if (!items || !items.length) throw new Error(`MOGRT insertion produced no items: ${args.path}`);
+        const names = [];
+        for (const item of items) {
+          try { names.push(await item.getName()); } catch (e) { names.push(null); }
+        }
+        return { inserted: names, at_seconds: Number(atSeconds) };
+    """),
+    "scene_edit_detection": _s("""
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        const tracks = await gatherTracks(project, seq, "video");
+        const perTrack = trackItemsSync(project, tracks, false);
+        const matched = [];
+        for (let i = 0; i < perTrack.length; i++) {
+          if (args.track_index !== undefined && args.track_index !== null && i !== args.track_index) continue;
+          for (const item of perTrack[i]) {
+            let name = null;
+            try { name = await item.getName(); } catch (e) {}
+            if (args.clip_name && name !== args.clip_name) continue;
+            matched.push(item);
+          }
+        }
+        if (!matched.length) throw new Error("No matching clips for scene edit detection");
+        let selection = null;
+        ppro.TrackItemSelection.createEmptySelection((sel) => { selection = sel; });
+        for (const item of matched) selection.addItem(item, true);
+        const opMap = {
+          cut: ppro.SequenceUtils.SEQUENCE_OPERATION_APPLYCUT,
+          marker: ppro.SequenceUtils.SEQUENCE_OPERATION_CREATEMARKER,
+          subclip: ppro.SequenceUtils.SEQUENCE_OPERATION_CREATESUBCLIP,
+        };
+        const op = opMap[args.operation || "cut"];
+        if (op === undefined) throw new Error(`Unknown operation: ${args.operation} (cut|marker|subclip)`);
+        const ok = await ppro.SequenceUtils.performSceneEditDetectionOnSelection(op, selection);
+        if (!ok) throw new Error("Scene edit detection returned false");
+        return { detected: true, clips: matched.length, operation: args.operation || "cut" };
+    """),
+    "subclip_create": _s("""
+        const project = await activeProject();
+        const item = await findProjectItem(project, { name: args.name, path: args.path });
+        if (!item) throw new Error(`Project item not found: ${args.name || args.path}`);
+        const clip = ppro.ClipProjectItem.cast(item);
+        if (typeof clip.createSubClipAction !== "function") {
+          throw new Error("Subclip creation unavailable in this Premiere version (needs 26.3+)");
+        }
+        runTransaction(project, "pmr: create subclip", (add) => {
+          add(clip.createSubClipAction(
+            args.subclip_name,
+            secondsToTick(args.start_seconds || 0),
+            secondsToTick(args.end_seconds || 0),
+            !!args.hard_boundaries,
+            { takeVideo: args.take_video !== false, takeAudio: args.take_audio !== false }
+          ));
+        });
+        return { created: args.subclip_name, from: item.name };
+    """),
+    "sequence_in_out": _s("""
+        const project = await activeProject();
+        const seq = await resolveSequence(project, args.sequence);
+        if (args.in_seconds !== undefined || args.out_seconds !== undefined) {
+          runTransaction(project, "pmr: set in/out", (add) => {
+            if (args.in_seconds !== undefined && args.in_seconds !== null)
+              add(seq.createSetInPointAction(secondsToTick(args.in_seconds)));
+            if (args.out_seconds !== undefined && args.out_seconds !== null)
+              add(seq.createSetOutPointAction(secondsToTick(args.out_seconds)));
+          });
+        }
+        return { in_point: tt(await seq.getInPoint()), out_point: tt(await seq.getOutPoint()) };
+    """),
     # ------------------------------------------------------------------
     # Effects & transitions
     # ------------------------------------------------------------------

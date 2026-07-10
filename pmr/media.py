@@ -183,6 +183,56 @@ class MediaNamespace:
     def scan(self, path: str, **kwargs: Any) -> list[dict[str, str]]:
         return scan_media_files(path, **kwargs)
 
+    def attach_proxy(
+        self, proxy_path: str, *, name: str | None = None, path: str | None = None,
+        is_hi_res: bool = False,
+    ) -> dict[str, Any]:
+        """Attach a proxy (or hi-res alternate) to a clip. Not undoable."""
+        return self._p.eval_js(
+            snippet("proxy_attach"),
+            {"name": name, "path": path, "proxy_path": str(Path(proxy_path).expanduser()),
+             "is_hi_res": is_hi_res},
+        )
+
+    def transcript_export(self, *, name: str | None = None, path: str | None = None) -> dict[str, Any]:
+        """Export a clip's speech-to-text transcript as JSON (26.3+)."""
+        return self._p.eval_js(snippet("transcript_export"), {"name": name, "path": path})
+
+    def transcript_import(
+        self, json_text: str, *, name: str | None = None, path: str | None = None
+    ) -> dict[str, Any]:
+        """Import transcript JSON onto a clip (26.3+)."""
+        return self._p.eval_js(
+            snippet("transcript_import"), {"name": name, "path": path, "json": json_text}
+        )
+
+    def create_subclip(
+        self,
+        subclip_name: str,
+        start_seconds: float,
+        end_seconds: float,
+        *,
+        name: str | None = None,
+        path: str | None = None,
+        hard_boundaries: bool = False,
+        take_video: bool = True,
+        take_audio: bool = True,
+    ) -> dict[str, Any]:
+        """Create a subclip from a source clip (26.3+)."""
+        return self._p.eval_js(
+            snippet("subclip_create"),
+            {
+                "name": name,
+                "path": path,
+                "subclip_name": subclip_name,
+                "start_seconds": start_seconds,
+                "end_seconds": end_seconds,
+                "hard_boundaries": hard_boundaries,
+                "take_video": take_video,
+                "take_audio": take_audio,
+            },
+        )
+
 
 __all__ = [
     "AUDIO_EXTENSIONS",

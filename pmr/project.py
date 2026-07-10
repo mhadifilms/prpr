@@ -26,10 +26,7 @@ if TYPE_CHECKING:
 
 def projects_dir() -> Path:
     env = os.environ.get("PMR_PROJECTS_DIR")
-    if env:
-        target = Path(env).expanduser()
-    else:
-        target = Path.home() / "Documents" / "pmr Projects"
+    target = Path(env).expanduser() if env else Path.home() / "Documents" / "pmr Projects"
     target.mkdir(parents=True, exist_ok=True)
     return target
 

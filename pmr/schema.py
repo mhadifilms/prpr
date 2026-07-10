@@ -101,6 +101,8 @@ PARITY: dict[str, dict[str, Any]] = {
     "media.relink": {"status": "dvr-only", "reason": "per-clip changeMediaFilePath only; no batch relink"},
     "media.proxy": {"status": "both", "note": "pmr: attachProxy per clip"},
     "media.transcribe": {"status": "both", "note": "pmr: Transcript API (26.3+)"},
+    "media.subclip": {"status": "pmr-only", "reason": "ClipProjectItem.createSubClipAction (26.3+)"},
+    "timeline.set_in_out": {"status": "both", "note": "pmr: sequence in/out actions"},
     "render.submit": {"status": "both", "note": "pmr: .epr presets via EncoderManager"},
     "render.presets": {"status": "both", "note": "pmr discovers .epr files on disk"},
     "render.status": {"status": "both", "note": "pmr: event-driven, no job ids"},

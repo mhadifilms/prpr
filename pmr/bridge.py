@@ -39,6 +39,7 @@ import threading
 import uuid
 import weakref
 from collections.abc import Callable
+from contextlib import suppress
 from typing import Any
 
 from . import errors
@@ -215,22 +216,16 @@ class Bridge:
                 conn = self._conn
                 self._conn = None
             if conn is not None:
-                try:
+                with suppress(Exception):
                     await conn.close()
-                except Exception:
-                    pass
             if self._server is not None:
                 self._server.close()
-                try:
+                with suppress(Exception):
                     await self._server.wait_closed()
-                except Exception:
-                    pass
             loop.call_soon(loop.stop)
 
-        try:
+        with suppress(Exception):
             asyncio.run_coroutine_threadsafe(_shutdown(), loop).result(timeout=5)
-        except Exception:
-            pass
         if self._thread is not None:
             self._thread.join(timeout=5)
 
@@ -297,10 +292,8 @@ class Bridge:
         # Piggy-back garbage-collected handle releases onto this request.
         stale = self._drain_releases()
         if stale and op != "release":
-            try:
+            with suppress(errors.PmrError):
                 self._request_raw(conn, loop, {"op": "release", "handles": stale}, timeout=10.0)
-            except errors.PmrError:
-                pass
 
         message = {"op": op, **_encode(payload)}
         response = self._request_raw(conn, loop, message, timeout=timeout)

@@ -288,6 +288,54 @@ class Timeline:
         self._ref = new_name
         return result
 
+    def insert_mogrt(
+        self,
+        path: str,
+        *,
+        seconds: float | None = None,
+        video_track: int = 0,
+        audio_track: int = 0,
+    ) -> dict[str, Any]:
+        """Insert a Motion Graphics template (.mogrt) into this sequence."""
+        return self._p.eval_js(
+            snippet("mogrt_insert"),
+            {
+                "sequence": self._ref,
+                "path": path,
+                "seconds": seconds,
+                "video_track": video_track,
+                "audio_track": audio_track,
+            },
+        )
+
+    def scene_edit_detection(
+        self,
+        *,
+        operation: str = "cut",
+        clip_name: str | None = None,
+        track_index: int | None = None,
+    ) -> dict[str, Any]:
+        """Run scene edit detection on matching clips (cut | marker | subclip)."""
+        return self._p.eval_js(
+            snippet("scene_edit_detection"),
+            {
+                "sequence": self._ref,
+                "operation": operation,
+                "clip_name": clip_name,
+                "track_index": track_index,
+            },
+            timeout=1800.0,
+        )
+
+    def set_in_out(
+        self, in_seconds: float | None = None, out_seconds: float | None = None
+    ) -> dict[str, Any]:
+        """Set (or read, with no args) the sequence in/out points."""
+        return self._p.eval_js(
+            snippet("sequence_in_out"),
+            {"sequence": self._ref, "in_seconds": in_seconds, "out_seconds": out_seconds},
+        )
+
     # -- transport ------------------------------------------------------
 
     @property

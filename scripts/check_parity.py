@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from pmr.schema import PARITY  # noqa: E402
+from pmr.schema import PARITY
 
 VALID_STATUSES = {"both", "dvr-only", "pmr-only"}
 
@@ -34,6 +34,9 @@ NO_TOOL_EXPECTED = {
     "clip.rename",  # folded into clip_update
     "clip.where",
     "media.proxy",  # library-level, per-clip
+    "media.subclip",  # library-level
+    "timeline.set_in_out",  # library-level
+    "timeline.current",  # covered by timeline_inspect
     "media.transcribe",  # library-level (Transcript API)
     "timeline.insert",  # folded into timeline_append
     "timeline.insert_mogrt",  # planned; see PARITY note

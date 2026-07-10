@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-10
+
+First stable release.
+
+### Added
+- Plugin freshness check: on connect, pmr compares the running bridge to
+  the version bundled in the pip package and (by default) UPIA-reinstalls
+  the newer one so a `pip install -U pmr` refreshes the in-Premiere bridge
+  on the next Premiere launch. Opt out with `PMR_PLUGIN_AUTOUPDATE=0`;
+  surfaced in `pmr plugin check` and `pmr doctor --probe`.
+
+### Changed
+- Development status promoted to Production/Stable.
+- Packaging hardened for distribution: the headless plugin ships inside
+  the wheel (`pmr/plugin_assets/`); dev-tools session files are excluded.
+
 ## [0.3.0] - 2026-07-10
 
 ### Changed
@@ -126,6 +142,7 @@ Initial release. Structural sibling of [dvr](https://github.com/mhadifilms/dvr) 
 - `Sequence.setSelection` crashes Premiere 26.5 beta, so `timeline.select`
   supports read + clear only and refuses filtered selection.
 
+[1.0.0]: https://github.com/mhadifilms/pmr/releases/tag/v1.0.0
 [0.3.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.3.0
 [0.2.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.2.0
 [0.1.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.1.0

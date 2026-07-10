@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="main.js"></script>
+    <style>
+      body {
+        font-family: -apple-system, "Segoe UI", sans-serif;
+        color: #d6d6d6;
+        background-color: #232323;
+        padding: 12px;
+        margin: 0;
+      }
+      h1 {
+        font-size: 14px;
+        margin: 0 0 8px 0;
+        font-weight: 600;
+      }
+      #status {
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 4px;
+        display: inline-block;
+      }
+      #status.ok {
+        background: #1e3a24;
+        color: #7bd88f;
+      }
+      #status.waiting {
+        background: #3a331e;
+        color: #d8c47b;
+      }
+      #detail {
+        font-size: 11px;
+        color: #8a8a8a;
+        margin-top: 8px;
+      }
+      p.hint {
+        font-size: 11px;
+        color: #8a8a8a;
+        line-height: 1.5;
+      }
+      code {
+        background: #2e2e2e;
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-size: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>pmr bridge</h1>
+    <div id="status" class="waiting">starting…</div>
+    <div id="detail"></div>
+    <p class="hint">
+      This panel connects Premiere Pro to the <code>pmr</code> CLI, Python
+      library, and MCP server. Keep it open (docked anywhere). It reconnects
+      automatically when the daemon restarts.
+    </p>
+  </body>
+</html>

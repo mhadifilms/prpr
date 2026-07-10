@@ -1,0 +1,41 @@
+{
+  "id": "pmr.bridge",
+  "name": "pmr bridge",
+  "version": "0.1.0",
+  "main": "index.html",
+  "manifestVersion": 5,
+  "host": {
+    "app": "premierepro",
+    "minVersion": "25.3"
+  },
+  "entrypoints": [
+    {
+      "type": "panel",
+      "id": "pmr.bridge.panel",
+      "label": {
+        "default": "pmr bridge"
+      },
+      "minimumSize": { "width": 230, "height": 120 },
+      "maximumSize": { "width": 800, "height": 1200 },
+      "preferredDockedSize": { "width": 300, "height": 220 },
+      "preferredFloatingSize": { "width": 340, "height": 260 }
+    }
+  ],
+  "requiredPermissions": {
+    "localFileSystem": "fullAccess",
+    "network": {
+      "domains": [
+        "ws://localhost:8855",
+        "ws://127.0.0.1:8855",
+        "ws://localhost:8856",
+        "ws://127.0.0.1:8856",
+        "ws://localhost:8857",
+        "ws://127.0.0.1:8857"
+      ]
+    },
+    "clipboard": "readAndWrite",
+    "ipc": { "enablePluginCommunication": true },
+    "allowCodeGenerationFromStrings": true
+  },
+  "featureFlags": { "enableAlerts": true }
+}

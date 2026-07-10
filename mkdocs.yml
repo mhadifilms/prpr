@@ -1,0 +1,53 @@
+site_name: pmr
+site_description: The missing CLI, Python library, and MCP server for Adobe Premiere Pro.
+site_url: https://mhadifilms.github.io/pmr/
+repo_url: https://github.com/mhadifilms/pmr
+repo_name: mhadifilms/pmr
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+    - content.action.edit
+    - toc.integrate
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Library: library.md
+  - CLI: cli.md
+  - MCP server: mcp.md
+  - Declarative specs: spec.md
+  - Daemon: daemon.md
+  - Cookbook: cookbook.md
+  - dvr ↔ pmr parity: parity.md

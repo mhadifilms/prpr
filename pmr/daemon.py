@@ -364,7 +364,14 @@ class Client:
                 if not chunk:
                     break
                 data += chunk
-            response = json.loads(data.decode("utf-8"))
+        if not data.strip():
+            raise errors.ConnectionError(
+                "The pmr daemon closed the connection without replying.",
+                cause="The daemon likely crashed or was stopped mid-request.",
+                fix="Check `pmr serve status`; restart with `pmr serve start`.",
+                state={"method": method},
+            )
+        response = json.loads(data.decode("utf-8"))
         if not response.get("ok", False):
             err = response.get("error", {})
             raise errors.PmrError(

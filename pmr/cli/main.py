@@ -214,22 +214,41 @@ def _premiere_session(ctx: typer.Context) -> Iterator[Premiere]:
 _DAEMON_BYPASS_COMMANDS = frozenset({"serve", "mcp", "completion", "plugin", "repl", "doctor"})
 
 
+# Root options that consume the next argv element as their value.
+_VALUE_OPTIONS = ("--format", "-f", "--timeout")
+
+
+def _first_command(argv: list[str]) -> str | None:
+    """Return the first positional (the command), skipping option values."""
+    skip_next = False
+    for arg in argv:
+        if skip_next:
+            skip_next = False
+            continue
+        if arg.startswith("-"):
+            if arg in _VALUE_OPTIONS:
+                skip_next = True
+            continue
+        return arg
+    return None
+
+
 def _should_bypass_daemon(argv: list[str]) -> bool:
-    """True when ``argv`` must run locally instead of via the daemon."""
+    """True when ``argv`` must run locally instead of via the daemon.
+
+    Note: unlike dvr, long-running commands (``--wait``, ``render watch``)
+    are NOT bypassed — only one process can own the bridge port, so while
+    a daemon runs, everything must route through it. The cost is that the
+    daemon buffers their output until completion.
+    """
     if sys.platform == "win32":
         return True
     if os.environ.get("PMR_NO_DAEMON", "").strip().lower() in ("1", "true", "yes"):
         return True
     if any(a in ("--help", "-h", "--version", "-V") for a in argv):
         return True
-    first = next((a for a in argv if not a.startswith("-")), None)
-    if first is None or first in _DAEMON_BYPASS_COMMANDS:
-        return True
-    # Streaming / long-watch commands write progressively; the daemon
-    # buffers output until the command finishes, so run them locally.
-    if "--wait" in argv:
-        return True
-    return first == "render" and "watch" in argv
+    first = _first_command(argv)
+    return first is None or first in _DAEMON_BYPASS_COMMANDS
 
 
 def _forward_to_daemon(argv: list[str]) -> int | None:

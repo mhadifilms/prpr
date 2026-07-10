@@ -93,7 +93,7 @@ def ls_cmd(
         duration_lt=duration_lt,
         duration_gt=duration_gt,
     )
-    rows = [c.inspect() for c in clips]
+    rows = [{"track_type": c.track_type, **c.inspect()} for c in clips]
     output.emit(rows, fmt=ctx.obj["format"], headline=f"{len(rows)} clip(s)")
 
 

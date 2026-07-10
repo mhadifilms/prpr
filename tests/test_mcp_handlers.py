@@ -90,12 +90,25 @@ def test_timeline_create_from_media_routes(ctx_and_bridge) -> None:
 def test_all_new_tools_registered() -> None:
     names = {t.name for t in build_registry()}
     for name in (
-        "marker_move", "timeline_work_area", "timeline_keyframes", "timeline_track",
-        "timeline_clone", "timeline_subsequence", "timeline_in_out",
-        "timeline_create_from_media", "timeline_selection", "media_color_label",
-        "media_bin_rename", "media_smart_bin", "media_footage_interpretation",
-        "media_purge_cache", "project_scratch_disks", "project_ingest",
-        "project_color_settings", "project_import_sequences", "project_import_ae_comps",
+        "marker_move",
+        "timeline_work_area",
+        "timeline_keyframes",
+        "timeline_track",
+        "timeline_clone",
+        "timeline_subsequence",
+        "timeline_in_out",
+        "timeline_create_from_media",
+        "timeline_selection",
+        "media_color_label",
+        "media_bin_rename",
+        "media_smart_bin",
+        "media_footage_interpretation",
+        "media_purge_cache",
+        "project_scratch_disks",
+        "project_ingest",
+        "project_color_settings",
+        "project_import_sequences",
+        "project_import_ae_comps",
         "app_preference",
     ):
         assert name in names, f"missing tool: {name}"

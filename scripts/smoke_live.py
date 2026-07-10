@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 from pmr import Premiere, interchange
@@ -64,6 +65,19 @@ def main(argv: list[str]) -> int:
     assert any(m["name"] == "smoke" for m in tl.markers())
     print("  markers", len(tl.markers()))
 
+    # Export a still while the sequence is simple and settled, before the
+    # heavy effect/keyframe transactions below (which keep Premiere busy and
+    # can delay an immediately-following frame render).
+    _stage("still frame export")
+    frame = workdir / "frame.png"
+    p.render.export_frame(0.2, str(frame), timeline="Smoke_v1", width=320, height=180)
+    for _ in range(60):  # exportSequenceFrame writes asynchronously
+        if frame.exists():
+            break
+        time.sleep(0.25)
+    assert frame.exists(), "frame was not written within 15s"
+    print("  frame ->", frame.exists())
+
     _stage("effects + transform + keyframes")
     p.effects.apply("PR.ADBE Gamma Correction", clip_name=clips[0].name, timeline="Smoke_v1")
     p.effects.set_param("Motion", "Scale", 80, clip_name=clips[0].name, timeline="Smoke_v1")
@@ -71,11 +85,6 @@ def main(argv: list[str]) -> int:
         "Opacity", "Opacity", 0, clip_name=clips[0].name, timeline="Smoke_v1", at_seconds=1.0
     )
     print("  gamma + scale=80 + opacity keyframe applied")
-
-    _stage("still frame export")
-    frame = workdir / "frame.png"
-    p.render.export_frame(0.2, str(frame), timeline="Smoke_v1", width=320, height=180)
-    print("  frame ->", frame.exists())
 
     _stage("interchange (fcpxml)")
     interchange.export_timeline(p, str(workdir / "smoke.xml"), timeline="Smoke_v1")

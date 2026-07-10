@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-10
+
+Live-validated against Adobe Premiere Pro 26.5. The full surface below was
+driven end-to-end through the bridge (`scripts/smoke_live.py` + targeted
+checks): transforms, keyframes, track mute/rename, marker move, keyframe
+listing, sequence clone/settings-write, color labels, bin rename, scratch
+disks, ingest, footage interpretation, selection read, still-frame and
+sequence export, FCPXML export, snapshot, spec.
+
 ### Added
 - **Transforms & keyframes**: `effects.set_param` writes any component
   parameter (Motion/Opacity/effect params) with `PointF`/`Color`
@@ -93,4 +102,12 @@ Initial release. Structural sibling of [dvr](https://github.com/mhadifilms/dvr) 
   UPIA installer with automatic `.ccx` packaging
 - Test suite (MockBridge at the wire boundary, no Premiere required)
 
+### Notes
+- `timeline.work_area` (WorkAreaUtils) is feature-detected — it is absent
+  on some Premiere 26.5 builds and fails with a clear version error rather
+  than crashing.
+- `Sequence.setSelection` crashes Premiere 26.5 beta, so `timeline.select`
+  supports read + clear only and refuses filtered selection.
+
+[0.2.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.2.0
 [0.1.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.1.0

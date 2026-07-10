@@ -95,7 +95,10 @@ PARITY: dict[str, dict[str, Any]] = {
     "marker.list": {"status": "both"},
     "marker.remove": {"status": "both"},
     "marker.move": {"status": "both", "note": "pmr: createMoveMarkerAction"},
-    "timeline.work_area": {"status": "pmr-only", "reason": "WorkAreaUtils (26.5+)"},
+    "timeline.work_area": {
+        "status": "pmr-only",
+        "reason": "WorkAreaUtils; feature-detected (absent on some 26.5 builds, fails with a clear version error)",
+    },
     "timeline.keyframes": {"status": "pmr-only", "reason": "ComponentParam keyframe list"},
     "media.color_label": {"status": "both", "note": "pmr: ProjectItem color label (0-14)"},
     "media.bin_rename": {"status": "both", "note": "pmr: createRenameBinAction"},
@@ -151,7 +154,10 @@ PARITY: dict[str, dict[str, Any]] = {
     "timeline.subsequence": {"status": "pmr-only", "reason": "Sequence.createSubsequence"},
     "timeline.clone": {"status": "both", "note": "pmr: createCloneAction"},
     "timeline.set_settings": {"status": "both", "note": "pmr: SequenceSettings write subset"},
-    "timeline.insert_mogrt_from_library": {"status": "pmr-only", "reason": "insertMogrtFromLibrary"},
+    "timeline.insert_mogrt_from_library": {
+        "status": "pmr-only",
+        "reason": "insertMogrtFromLibrary",
+    },
     "timeline.create_from_media": {
         "status": "pmr-only",
         "reason": "Project.createSequenceFromMedia",

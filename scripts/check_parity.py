@@ -112,28 +112,31 @@ def main() -> int:
                 )
 
     dvr_repo = Path(__file__).resolve().parent.parent.parent / "dvr"
-    dvr_schema = dvr_repo / "dvr" / "schema.py"
-    if dvr_schema.exists():
-        import importlib.util
+    if (dvr_repo / "dvr" / "schema.py").exists():
+        import importlib
 
-        spec = importlib.util.spec_from_file_location("dvr_schema_check", dvr_schema)
-        if spec and spec.loader:
-            module = importlib.util.module_from_spec(spec)
-            try:
-                spec.loader.exec_module(module)
-            except Exception as exc:
-                print(f"note: could not import dvr schema ({exc}); skipping cross-check")
-                module = None
-            dvr_parity = getattr(module, "PARITY", None) if module else None
-            if isinstance(dvr_parity, dict):
-                shared = set(PARITY) & set(dvr_parity)
-                for op in sorted(shared):
-                    ours, theirs = PARITY[op].get("status"), dvr_parity[op].get("status")
-                    if ours != theirs:
-                        failures.append(
-                            f"{op}: status mismatch — pmr says {ours!r}, dvr says {theirs!r}"
-                        )
-                print(f"cross-checked {len(shared)} shared operations against dvr")
+        sys.path.insert(0, str(dvr_repo))
+        try:
+            dvr_schema = importlib.import_module("dvr.schema")
+        except Exception as exc:
+            print(f"note: could not import dvr schema ({exc}); skipping cross-check")
+            dvr_schema = None
+        dvr_parity = getattr(dvr_schema, "PARITY", None) if dvr_schema else None
+        if isinstance(dvr_parity, dict):
+            only_here = set(PARITY) - set(dvr_parity)
+            only_there = set(dvr_parity) - set(PARITY)
+            for op in sorted(only_here):
+                failures.append(f"{op}: present in pmr's PARITY but missing from dvr's")
+            for op in sorted(only_there):
+                failures.append(f"{op}: present in dvr's PARITY but missing from pmr's")
+            shared = set(PARITY) & set(dvr_parity)
+            for op in sorted(shared):
+                ours, theirs = PARITY[op].get("status"), dvr_parity[op].get("status")
+                if ours != theirs:
+                    failures.append(
+                        f"{op}: status mismatch — pmr says {ours!r}, dvr says {theirs!r}"
+                    )
+            print(f"cross-checked {len(shared)} shared operations against dvr")
 
     if failures:
         print(f"\nPARITY CHECK FAILED ({len(failures)}):")

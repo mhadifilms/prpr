@@ -142,7 +142,7 @@ Initial release. Structural sibling of [dvr](https://github.com/mhadifilms/dvr) 
 - `Sequence.setSelection` crashes Premiere 26.5 beta, so `timeline.select`
   supports read + clear only and refuses filtered selection.
 
-[1.0.0]: https://github.com/mhadifilms/pmr/releases/tag/v1.0.0
-[0.3.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.3.0
-[0.2.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.2.0
-[0.1.0]: https://github.com/mhadifilms/pmr/releases/tag/v0.1.0
+[1.0.0]: https://github.com/mhadifilms/prpr/releases/tag/v1.0.0
+[0.3.0]: https://github.com/mhadifilms/prpr/releases/tag/v0.3.0
+[0.2.0]: https://github.com/mhadifilms/prpr/releases/tag/v0.2.0
+[0.1.0]: https://github.com/mhadifilms/prpr/releases/tag/v0.1.0

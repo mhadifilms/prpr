@@ -1,8 +1,8 @@
 site_name: prpr
 site_description: The missing CLI, Python library, and MCP server for Adobe Premiere Pro.
-site_url: https://mhadifilms.github.io/pmr/
-repo_url: https://github.com/mhadifilms/pmr
-repo_name: mhadifilms/pmr
+site_url: https://mhadifilms.github.io/prpr/
+repo_url: https://github.com/mhadifilms/prpr
+repo_name: mhadifilms/prpr
 edit_uri: edit/main/docs/
 
 theme:

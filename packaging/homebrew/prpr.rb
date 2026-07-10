@@ -2,7 +2,7 @@ class Prpr < Formula
   include Language::Python::Virtualenv
 
   desc "Missing CLI and Python library for Adobe Premiere Pro"
-  homepage "https://github.com/mhadifilms/pmr"
+  homepage "https://github.com/mhadifilms/prpr"
   # url + sha256 are filled in from the published PyPI sdist at release time:
   #   url "https://files.pythonhosted.org/packages/.../prpr-1.0.0.tar.gz"
   #   sha256 "<sdist sha256>"

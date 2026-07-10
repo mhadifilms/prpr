@@ -280,3 +280,114 @@ def export(
     p = _premiere(ctx)
     result = interchange.export_timeline(p, file, format=format, timeline=timeline)
     output.emit(result, fmt=ctx.obj["format"])
+
+
+@app.command("track")
+def track_cmd(
+    ctx: typer.Context,
+    track_index: Annotated[int, typer.Argument(help="Track index (0-based).")],
+    track_type: Annotated[
+        str, typer.Option("--track-type", "-t", help="video | audio | caption.")
+    ] = "video",
+    mute: Annotated[
+        bool | None, typer.Option("--mute/--unmute", help="Mute or unmute the track.")
+    ] = None,
+    name: Annotated[
+        str | None, typer.Option("--name", help="Rename the track (Premiere 26.3+).")
+    ] = None,
+    timeline: Annotated[str | None, typer.Option("--timeline", help="Sequence name.")] = None,
+) -> None:
+    """Mute/unmute or rename a track on the active (or named) sequence."""
+    p = _premiere(ctx)
+    tl = Timeline(p, timeline) if timeline else _current(ctx)
+    result = tl.track_update(track_index, track_type=track_type, mute=mute, set_name=name)
+    output.emit(result, fmt=ctx.obj["format"])
+
+
+@app.command("clone")
+def clone_cmd(
+    ctx: typer.Context,
+    timeline: Annotated[str | None, typer.Option("--timeline", help="Sequence name.")] = None,
+) -> None:
+    """Duplicate a sequence (Premiere names the copy)."""
+    p = _premiere(ctx)
+    tl = Timeline(p, timeline) if timeline else _current(ctx)
+    output.emit(tl.clone(), fmt=ctx.obj["format"])
+
+
+@app.command("from-media")
+def from_media_cmd(
+    ctx: typer.Context,
+    name: Annotated[str, typer.Argument(help="Name for the new sequence.")],
+    items: Annotated[list[str], typer.Argument(help="Project-item names to include.")],
+    bin: Annotated[str | None, typer.Option("--bin", "-b", help="Target bin.")] = None,
+) -> None:
+    """Create a sequence pre-populated from project items."""
+    p = _premiere(ctx)
+    tl = p.timeline.create_from_media(name, items, bin=bin)
+    output.emit(tl.inspect(names_only=True), fmt=ctx.obj["format"], headline=tl.name)
+
+
+@app.command("selection")
+def selection_cmd(
+    ctx: typer.Context,
+    clear: Annotated[bool, typer.Option("--clear", help="Clear the selection.")] = False,
+    timeline: Annotated[str | None, typer.Option("--timeline", help="Sequence name.")] = None,
+) -> None:
+    """Show (or clear) the current track-item selection."""
+    p = _premiere(ctx)
+    tl = Timeline(p, timeline) if timeline else _current(ctx)
+    result = tl.select(clear=True) if clear else tl.selection()
+    output.emit(result, fmt=ctx.obj["format"])
+
+
+@app.command("in-out")
+def in_out_cmd(
+    ctx: typer.Context,
+    in_seconds: Annotated[
+        float | None, typer.Option("--in", help="Set the in point (seconds).")
+    ] = None,
+    out_seconds: Annotated[
+        float | None, typer.Option("--out", help="Set the out point (seconds).")
+    ] = None,
+    timeline: Annotated[str | None, typer.Option("--timeline", help="Sequence name.")] = None,
+) -> None:
+    """Show or set a sequence's in/out points."""
+    p = _premiere(ctx)
+    tl = Timeline(p, timeline) if timeline else _current(ctx)
+    output.emit(tl.set_in_out(in_seconds, out_seconds), fmt=ctx.obj["format"])
+
+
+@app.command("mogrt")
+def mogrt_cmd(
+    ctx: typer.Context,
+    path: Annotated[str, typer.Argument(help="Path to a .mogrt file.")],
+    at: Annotated[float | None, typer.Option("--at", help="Insertion time (seconds).")] = None,
+    video_track: Annotated[int, typer.Option("--video-track", help="Video track index.")] = 0,
+    audio_track: Annotated[int, typer.Option("--audio-track", help="Audio track index.")] = 0,
+    timeline: Annotated[str | None, typer.Option("--timeline", help="Sequence name.")] = None,
+) -> None:
+    """Insert a Motion Graphics template into a sequence."""
+    p = _premiere(ctx)
+    tl = Timeline(p, timeline) if timeline else _current(ctx)
+    result = tl.insert_mogrt(path, seconds=at, video_track=video_track, audio_track=audio_track)
+    output.emit(result, fmt=ctx.obj["format"])
+
+
+@app.command("scene-detect")
+def scene_detect_cmd(
+    ctx: typer.Context,
+    operation: Annotated[
+        str, typer.Option("--operation", "-o", help="cut | marker | subclip.")
+    ] = "cut",
+    clip_name: Annotated[str | None, typer.Option("--clip", help="Limit to one clip.")] = None,
+    track_index: Annotated[int | None, typer.Option("--track-index", help="Track index.")] = None,
+    timeline: Annotated[str | None, typer.Option("--timeline", help="Sequence name.")] = None,
+) -> None:
+    """Run scene edit detection on matching clips."""
+    p = _premiere(ctx)
+    tl = Timeline(p, timeline) if timeline else _current(ctx)
+    result = tl.scene_edit_detection(
+        operation=operation, clip_name=clip_name, track_index=track_index
+    )
+    output.emit(result, fmt=ctx.obj["format"])

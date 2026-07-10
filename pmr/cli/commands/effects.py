@@ -118,3 +118,40 @@ def components(
         at_seconds=at,
     )
     output.emit(result, fmt=ctx.obj["format"], headline="components")
+
+
+@app.command("param")
+def param_cmd(
+    ctx: typer.Context,
+    component: Annotated[str, typer.Argument(help="Component name, e.g. 'Motion', 'Opacity'.")],
+    param: Annotated[str, typer.Argument(help="Parameter name, e.g. 'Scale', 'Position'.")],
+    value: Annotated[str, typer.Argument(help="Value: number, true/false, or 'x,y' for a point.")],
+    clip: Annotated[str | None, typer.Option("--clip", help="Target clip name.")] = None,
+    track_index: Annotated[int | None, typer.Option("--track-index", help="Track index.")] = None,
+    kind: Annotated[str, typer.Option("--kind", help="video | audio.")] = "video",
+    at: Annotated[
+        float | None, typer.Option("--at", help="Keyframe time (seconds); omit for static.")
+    ] = None,
+    timeline: Annotated[str | None, typer.Option("--timeline", help="Sequence name.")] = None,
+) -> None:
+    """Set a component parameter (transform, opacity, effect param); keyframe with --at."""
+    p = _premiere(ctx)
+    coerced: object = value
+    low = value.strip().lower()
+    if low in ("true", "false"):
+        coerced = low == "true"
+    elif "," in value:
+        try:
+            coerced = [float(x) for x in value.split(",")]
+        except ValueError:
+            coerced = value
+    else:
+        try:
+            coerced = float(value)
+        except ValueError:
+            coerced = value
+    result = p.effects.set_param(
+        component, param, coerced,
+        timeline=timeline, clip_name=clip, track_index=track_index, kind=kind, at_seconds=at,
+    )
+    output.emit(result, fmt=ctx.obj["format"])

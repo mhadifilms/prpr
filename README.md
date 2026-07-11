@@ -1,8 +1,4 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/mhadifilms/prpr/main/docs/assets/logo.svg" alt="prpr logo" width="140">
-</p>
-
-# prpr
+# prpr - Premiere Pro CLI & MCP
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
